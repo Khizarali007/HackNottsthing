@@ -31,7 +31,7 @@ The three-agent parallel strategy splits work along strict architectural boundar
 |-------|------|------|
 | **Agent 1** | Frontend & Graph UX | React Vite app, React Flow implementation, overall UI |
 | **Agent 2** | Backend & Parsing | Node.js Express server, `child_process` execution, raw Git output parsing |
-| **Agent 3** | AI & Capability | Local Transformers.js zero-shot classification pipeline, commit details side panel |
+| **Agent 3** | AI & Capability | Local Transformers.js zero-shot classification pipeline, commit details side panel, **Time-Lapse Playback Slider UI** |
 
 ---
 
@@ -43,8 +43,16 @@ The three-agent parallel strategy splits work along strict architectural boundar
 | **Elevator pitch** | An interactive codebase visualizer that turns standard Git logs into an explorable node graph, sizing commits by impact and categorising them using local AI. |
 | **Target audience** | Developers onboarding to new projects or reviewing long pull requests. |
 | **Main pain point** | Terminal `git log` output and flat GitHub histories obscure the true architectural impact and intent of commits. |
-| **USP** | Node size is bound to lines changed ("impact radius"), and commits are auto-categorised via in-browser ML without external APIs. |
+| **USP** | Node size is bound to lines changed ("impact radius"), commits are auto-categorised via in-browser ML without external APIs, and history is animated via a time-lapse playback. |
 | **Demo objective** | A slick 60-second visual playback of a repo growing, with massive refactors as giant nodes and bug fixes colour-coded automatically. |
+
+### ✨ Key Features
+
+- **Time-Lapse Playback:** A built-in timeline slider that draws the graph chronologically. Watch branches diverge, merge, and grow in real-time to understand the exact evolution of the codebase.
+- **Impact Radius (Dynamic Node Sizing):** Nodes scale dynamically based on the number of lines added and deleted. Massive refactors become physically massive nodes, instantly showing where the heavy lifting happened.
+- **Local AI Auto-Categorisation:** GitStory runs a lightweight, zero-shot machine learning model **entirely locally in the browser** using Transformers.js. It reads commit messages and automatically color-codes nodes by intent (e.g., *Feature*, *Bugfix*, *Refactor*)—no cloud LLM APIs, no rate limits, and full compliance with HackNotts AI rules.
+- **Interactive 2D Graph:** Powered by React Flow and Dagre, the commit tree is auto-layouted into a clean, pan-and-zoomable web canvas.
+- **Slide-out Metadata Panel:** Click any node to instantly view the commit author, timestamp, exact line stat changes, and the AI-generated classification.
 
 ### Core User Journey
 
@@ -53,16 +61,17 @@ The three-agent parallel strategy splits work along strict architectural boundar
 3. **Backend** runs `git log`, parses hashes, parents, metadata and lines changed, and returns a JSON array.
 4. **Frontend (AI)** passes commit messages to the Transformers.js WebWorker to classify them (Bug, Feature, Refactor) and updates local state.
 5. **Frontend (Graph)** renders the React Flow graph. Nodes are sized by line changes and coloured by AI classification.
-6. **User** clicks a node.
-7. **Frontend** slides out a side panel showing author, date, raw message and AI category.
+6. **User** presses "Play" on the Time-Lapse slider to watch the graph draw itself sequentially.
+7. **User** clicks a node.
+8. **Frontend** slides out a side panel showing author, date, raw message and AI category.
 
 ### MVP Definition
 
 | Priority | Scope |
 |----------|-------|
 | **P0 – Essential** | Backend parses `git log` into JSON. Frontend renders a basic React Flow graph connecting parents to children. |
-| **P1 – High impact** | Backend parses `git log --stat` for `linesAdded` / `linesDeleted`. Frontend maps this to node size. |
-| **P2 – Optional** | Local Transformers.js classification to colour-code nodes. A "Play" button to render nodes chronologically. |
+| **P1 – High impact** | Backend parses `git log --stat` for `linesAdded` / `linesDeleted`. Frontend maps this to node size. Time-Lapse playback slider implemented. |
+| **P2 – Optional** | Local Transformers.js classification to colour-code nodes. |
 
 **Non-goals:** no authentication, no database (in-memory/local only), no cloud LLM APIs, no write operations (read-only visualisation).
 
@@ -75,9 +84,11 @@ graph TD
     subgraph Frontend - Vite/React
         UI[React Flow UI - Agent 1]
         Panel[Side Panel - Agent 3]
+        Slider[Time-Lapse Slider - Agent 3]
         ML[Transformers.js WebWorker - Agent 3]
 
         UI -->|Selected Node| Panel
+        Slider -->|Visible Node Index| UI
         ML -->|Enriches Data| UI
     end
 
@@ -124,7 +135,7 @@ Response (`200 OK`):
 - **File ownership:**
   - Agent 1: `client/src/components/Graph.jsx`, `App.jsx`
   - Agent 2: `server/index.js`, `server/parser.js`
-  - Agent 3: `client/src/components/SidePanel.jsx`, `client/src/workers/aiWorker.js`
+  - Agent 3: `client/src/components/SidePanel.jsx`, `client/src/components/TimeLapseSlider.jsx`, `client/src/workers/aiWorker.js`
 
 ---
 
@@ -139,6 +150,7 @@ Response (`200 OK`):
 | Impact radius (sizing) | Agent 1 | Agent 2 | Node styling scales with `linesAdded + linesDeleted`. |
 | Local AI classification | Agent 3 | None | Transformers.js loads a lightweight zero-shot model (e.g. `Xenova/mobilebert-uncased-mnli`) and categorises text. |
 | Side panel UI | Agent 3 | Agent 1 (click event) | Clicking a node opens a polished side panel with commit metadata. |
+| Time-Lapse Slider | Agent 3 | Agent 1 | A slider UI with Play/Pause that controls the chronological rendering of nodes on the graph. |
 
 ---
 
@@ -152,14 +164,13 @@ Response (`200 OK`):
 ### Phase 2: Parallel Implementation (Hours 1–5)
 - **Agent 1:** auto-layout logic using dagre (top-to-bottom or left-to-right).
 - **Agent 2:** regex and `child_process` logic to parse `git log --pretty=format:"%H|%P|%an|%ad|%s" --numstat`.
-- **Agent 3:** WebWorker for Transformers.js (avoids UI freezing while the model loads) and the `<SidePanel />` component.
+- **Agent 3:** WebWorker for Transformers.js (avoids UI freezing while the model loads), `<SidePanel />`, and `<TimeLapseSlider />` components.
 
 ### Phase 3: Early Integration (Hours 5–7)
 - **Agent 1** removes `mockData.json` and fetches from `localhost:3001/api/history`.
-- **Agent 3** hooks the AI classifier into Agent 1's state, updating node colours as inferences complete.
+- **Agent 3** hooks the AI classifier into Agent 1's state, updating node colours as inferences complete, and hooks the slider state to slice the rendered nodes array.
 
 ### Phase 4: Feature Completion & Polish (Hours 7–15)
-- "Time-Lapse" playback slider (Agent 1).
 - Refine regex for weird commit messages (Agent 2).
 - Polish CSS, empty states and loading spinners (Agents 1 & 3).
 
@@ -205,7 +216,7 @@ You must build against this exact JSON schema:
 
 DEPENDENCIES & PARALLEL WORK:
 - Agent 2 is building the Express backend. Until they finish, use a hardcoded `mockData.json` file containing the schema above.
-- Agent 3 is building a `<SidePanel />` and a Transformers.js WebWorker. Leave a placeholder slot in your `App.jsx` layout for the SidePanel.
+- Agent 3 is building a `<SidePanel />`, `<TimeLapseSlider />`, and a Transformers.js WebWorker. Leave a placeholder slot in your `App.jsx` layout for the SidePanel and Slider.
 
 PRIORITISED TASKS:
 1. Scaffold the basic React Flow canvas.

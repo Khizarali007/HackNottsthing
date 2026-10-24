@@ -79,3 +79,61 @@ export async function getHistory(repoPath, { limit } = {}) {
     throw new GitError('Failed to read git history', stderr || err.message, 500)
   }
 }
+
+const MAX_MESSAGE_LENGTH = 1500
+const MAX_FILES = 25
+const NOT_FOUND = /unknown revision|bad object|bad revision|not a valid object|could not get object|ambiguous argument/i
+
+// Facts about one commit for the summary feature: metadata plus changed file
+// names with line counts. Never includes diff content.
+// Returns null if the commit doesn't exist.
+export async function getCommitDetails(repoPath, id) {
+  if (!isDirectory(repoPath)) {
+    throw new GitError('Repository path does not exist', repoPath, 400)
+  }
+
+  const base = ['-C', repoPath, '-c', 'core.quotepath=false']
+  // ^{commit} so a tree or blob hash doesn't count as a commit.
+  const rev = `${id}^{commit}`
+
+  let meta
+  try {
+    meta = await runGit([...base, 'show', '-s', '--format=%an%x1f%aI%x1f%P%x1f%B', rev])
+  } catch (err) {
+    if (err instanceof GitError) throw err
+    const stderr = (err.stderr || '').trim()
+    if (/not a git repository/i.test(stderr)) {
+      throw new GitError('Path is not a git repository', repoPath, 400)
+    }
+    if (NOT_FOUND.test(stderr)) return null
+    throw new GitError('Failed to read commit', stderr || err.message, 500)
+  }
+
+  const [author = '', date = '', parentField = '', ...messageParts] = meta.stdout.split('\x1f')
+  const parentCount = parentField.split(' ').filter(Boolean).length
+  const message = messageParts.join('\x1f').trim().slice(0, MAX_MESSAGE_LENGTH)
+
+  let files = []
+  let totalFiles = 0
+  // Merges have no single diff worth listing.
+  if (parentCount < 2) {
+    const stat = await runGit([...base, 'show', '--numstat', '--format=', '--no-renames', rev]).catch(
+      (err) => {
+        throw new GitError('Failed to read commit files', (err.stderr || err.message || '').trim(), 500)
+      },
+    )
+    const all = stat.stdout
+      .split(/\r?\n/)
+      .map((line) => line.match(/^(\d+|-)\t(\d+|-)\t(.+)$/))
+      .filter(Boolean)
+      .map(([, added, deleted, path]) => ({
+        path,
+        added: added === '-' ? 0 : Number(added),
+        deleted: deleted === '-' ? 0 : Number(deleted),
+      }))
+    totalFiles = all.length
+    files = all.slice(0, MAX_FILES)
+  }
+
+  return { id, author, date, parentCount, message, files, totalFiles }
+}

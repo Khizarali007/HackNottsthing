@@ -1,10 +1,12 @@
 import dagre from '@dagrejs/dagre'
 
 export const MIN_WIDTH = 180
-const MAX_WIDTH = 480
+const MAX_WIDTH = 560
 const ASPECT = 0.5
-// Lines changed at which a node reaches MAX_WIDTH.
-const MAX_IMPACT = 5000
+// Lines changed at which a node reaches MAX_WIDTH. Most commits are under a
+// few hundred lines, so a lower cap spreads them out; anything bigger
+// (lockfiles, mass refactors) just pins at the max.
+export const MAX_IMPACT = 2000
 
 // Impact radius: square-root scale of lines changed, clamped to [min, max].
 // Used for both layout and rendering so dagre spaces nodes by their real size.

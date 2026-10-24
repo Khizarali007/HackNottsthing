@@ -45,10 +45,22 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: relative;
+  isolation: isolate;
   height: calc(24px * var(--xp-scale, 1));
   padding: 0 3px 0 6px;
   flex-shrink: 0;
+}
+
+/* Gradient lives on a layer of its own so the category filter
+   recolours it without touching the title text or buttons. */
+.xp-titlebar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   border-radius: 7px 7px 0 0;
+  filter: var(--xp-title-filter, none);
   background: linear-gradient(
     to bottom,
     #0997ff 0%,
@@ -77,6 +89,7 @@ body {
 
 .xp-btn {
   position: relative;
+  padding: 0;
   width: 18px;
   height: 18px;
   border: 1px solid #fff;
@@ -187,4 +200,184 @@ body {
 
 .xp-desktop .react-flow__minimap {
   background: rgb(236 233 216 / 0.85);
+}
+
+/* Keep bottom-docked controls clear of the taskbar. */
+.xp-desktop .react-flow__panel.bottom {
+  bottom: 40px;
+}
+
+/* ---- Legend ---- */
+
+.xp-legend {
+  width: 190px;
+  height: auto;
+}
+
+.xp-legend .xp-titlebar {
+  height: 22px;
+}
+
+.xp-legend-heading {
+  margin: 0 0 3px;
+  font-weight: bold;
+}
+
+.xp-legend-list {
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.xp-legend-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 18px;
+}
+
+.xp-swatch {
+  width: 14px;
+  height: 10px;
+  border: 1px solid #000;
+}
+
+.xp-legend-sizes {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.xp-legend-size {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.xp-size-box {
+  border: 1px solid #0831d9;
+  border-top-width: 3px;
+  background: #ece9d8;
+}
+
+/* ---- Side panel ---- */
+
+.xp-panel {
+  height: auto;
+  min-height: 0;
+  flex-shrink: 1;
+  font-size: 12px;
+}
+
+.xp-summary-text {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.xp-summary-placeholder {
+  margin: 0;
+  color: #777;
+  font-style: italic;
+}
+
+.xp-panel .xp-btn {
+  cursor: pointer;
+}
+
+.xp-panel-body {
+  justify-content: flex-start;
+  gap: 10px;
+  overflow-y: auto;
+  padding: 8px 10px;
+}
+
+.xp-panel-message {
+  margin: 0;
+  font-weight: bold;
+  font-size: 13px;
+  word-break: break-word;
+}
+
+.xp-panel-meta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 10px;
+  margin: 0;
+}
+
+.xp-panel-meta dt {
+  color: #555;
+}
+
+.xp-panel-meta dd {
+  margin: 0;
+}
+
+.xp-panel-parents {
+  font-family: "Lucida Console", monospace;
+  word-break: break-all;
+}
+
+.xp-badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: bold;
+}
+
+/* ---- Taskbar (time-lapse slider) ---- */
+
+.xp-taskbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 40px;
+  background: linear-gradient(
+    to bottom,
+    #3168d5 0%,
+    #4993e6 4%,
+    #2157d7 12%,
+    #2663e0 50%,
+    #1941a5 100%
+  );
+  border-top: 1px solid #0c2f8a;
+  color: #fff;
+}
+
+.xp-start {
+  height: 100%;
+  padding: 0 18px 0 12px;
+  border: none;
+  border-radius: 0 12px 12px 0;
+  background: linear-gradient(to bottom, #3c9a3c 0%, #5fbf5f 10%, #3a9a3a 50%, #2a7a2a 100%);
+  color: #fff;
+  font: italic bold 16px Tahoma, sans-serif;
+  text-shadow: 1px 1px 1px #1a3d1a;
+  box-shadow: 2px 0 4px rgb(0 0 0 / 0.4);
+  cursor: pointer;
+}
+
+.xp-start:hover {
+  filter: brightness(1.1);
+}
+
+.xp-range {
+  flex: 1;
+  min-width: 0;
+  accent-color: #3c9a3c;
+  cursor: pointer;
+}
+
+.xp-tray {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 100%;
+  padding: 0 14px;
+  background: linear-gradient(to bottom, #0c59b9 0%, #139ee9 6%, #18b5f2 12%, #139beb 50%, #1290e8 100%);
+  border-left: 1px solid #092e6e;
+  font-size: 12px;
+  white-space: nowrap;
 }

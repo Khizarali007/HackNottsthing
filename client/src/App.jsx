@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { ReactFlowProvider } from '@xyflow/react'
 import Graph from './components/Graph.jsx'
 import SidePanel from './components/SidePanel.jsx'
+import SummaryPanel from './components/SummaryPanel.jsx'
 import TimeLapseSlider from './components/TimeLapseSlider.jsx'
 import mockData from './data/mockData.json'
 
@@ -9,35 +11,81 @@ export default function App() {
   // Swapped for a fetch to /api/history once the backend is ready.
   const [commits, setCommits] = useState(mockData)
   const [selectedId, setSelectedId] = useState(null)
-  // Looked up by id so the panel picks up aiCategory once it's classified.
-  const selectedCommit = useMemo(
-    () => commits.find((c) => c.id === selectedId) ?? null,
-    [commits, selectedId],
+  const [visibleCount, setVisibleCount] = useState(Infinity)
+  const [followId, setFollowId] = useState(null)
+
+  // Oldest first. git log lists newest first, so equal dates keep the
+  // later array index (older commit) first.
+  const sortedCommits = useMemo(
+    () =>
+      commits
+        .map((commit, index) => ({ commit, index }))
+        .sort((a, b) => Date.parse(a.commit.date) - Date.parse(b.commit.date) || b.index - a.index)
+        .map(({ commit }) => commit),
+    [commits],
   )
 
+  const shownCount = Math.min(visibleCount, sortedCommits.length)
+  const visibleIds = useMemo(
+    () => new Set(sortedCommits.slice(0, shownCount).map((c) => c.id)),
+    [sortedCommits, shownCount],
+  )
+
+  const scrubTo = useCallback(
+    (count) => {
+      setVisibleCount(count)
+      setFollowId(sortedCommits[count - 1]?.id ?? null)
+    },
+    [sortedCommits],
+  )
+
+  // Looked up by id so the panel picks up aiCategory once it's classified.
+  // A commit hidden by the time-lapse closes the panel.
+  const selectedCommit = useMemo(
+    () => (visibleIds.has(selectedId) ? commits.find((c) => c.id === selectedId) : null),
+    [commits, selectedId, visibleIds],
+  )
+
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setSelectedId(null)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
+
   return (
-    <div className="flex h-screen w-screen overflow-hidden xp-desktop">
-      <main className="relative flex min-w-0 flex-1 flex-col">
-        <div className="relative min-h-0 flex-1">
+    <ReactFlowProvider>
+      <div className="relative flex h-screen w-screen overflow-hidden xp-desktop">
+        <main className="relative min-w-0 flex-1">
           <Graph
             commits={commits}
             selectedId={selectedId}
             onSelect={setSelectedId}
+            visibleIds={visibleIds}
+            followId={followId}
+          />
+        </main>
+
+        {/* Side panel slot (Agent 3) */}
+        {selectedCommit && (
+          <aside className="flex h-full w-80 shrink-0 flex-col gap-3 p-3 pb-13">
+            <SidePanel commit={selectedCommit} onClose={() => setSelectedId(null)} />
+            {/* AI summary isn't built yet; pass summary/loading once it is. */}
+            <SummaryPanel commit={selectedCommit} summary={null} loading={false} />
+          </aside>
+        )}
+
+        {/* Time-lapse slider slot (Agent 3), docked like the XP taskbar */}
+        <div className="absolute inset-x-0 bottom-0 z-10">
+          <TimeLapseSlider
+            count={sortedCommits.length}
+            value={shownCount}
+            onChange={scrubTo}
+            currentDate={sortedCommits[shownCount - 1]?.date}
           />
         </div>
-        {/* Time-lapse slider slot (Agent 3) */}
-        <div className="shrink-0">
-          <TimeLapseSlider commits={commits} />
-        </div>
-      </main>
-
-      {/* Side panel slot (Agent 3) */}
-      <aside className="h-full shrink-0">
-        <SidePanel
-          commit={selectedCommit}
-          onClose={() => setSelectedId(null)}
-        />
-      </aside>
-    </div>
+      </div>
+    </ReactFlowProvider>
   )
 }

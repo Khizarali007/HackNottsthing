@@ -1,17 +1,21 @@
 import { Handle, Position } from '@xyflow/react'
 import { MIN_WIDTH } from '../lib/layout.js'
+import { categoryStyle } from '../lib/categories.js'
 
 // A single commit drawn as a Windows XP window, sized by impact radius.
 // Width and height come from nodeSize() via React Flow.
 export default function CommitNode({ data, selected, width }) {
   const { commit } = data
-  // Text grows with the window so big commits read as big, not just empty.
-  const scale = (width ?? MIN_WIDTH) / MIN_WIDTH
+  // Text grows with the window (dampened) so big commits read as big, not empty.
+  const scale = Math.sqrt((width ?? MIN_WIDTH) / MIN_WIDTH)
 
   return (
     <div
       className={`xp-window ${selected ? 'xp-window--active' : ''}`}
-      style={{ '--xp-scale': scale }}
+      style={{
+        '--xp-scale': scale,
+        '--xp-title-filter': categoryStyle(commit.aiCategory).filter,
+      }}
     >
       <Handle type="target" position={Position.Left} className="xp-handle" />
 

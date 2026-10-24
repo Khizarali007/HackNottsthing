@@ -5,6 +5,7 @@ import SidePanel from './components/SidePanel.jsx'
 import SummaryPanel from './components/SummaryPanel.jsx'
 import StatusDialog from './components/StatusDialog.jsx'
 import TimeLapseSlider from './components/TimeLapseSlider.jsx'
+import useAiConfig from './hooks/useAiConfig.js'
 import useCommitHistory from './hooks/useCommitHistory.js'
 import useStartupSound from './hooks/useStartupSound.js'
 
@@ -13,9 +14,14 @@ export default function App() {
   // The hook also returns setCommits for the classifier to write aiCategory back.
   const { commits, status, error, usingSample, total, dropped, retry } = useCommitHistory()
   useStartupSound()
+  const aiConfig = useAiConfig()
+  // Until the server has answered, treat AI as off.
+  const aiEnabled = aiConfig.ready && aiConfig.enabled
   const [selectedId, setSelectedId] = useState(null)
   const [visibleCount, setVisibleCount] = useState(Infinity)
   const [followId, setFollowId] = useState(null)
+  const [playToken, setPlayToken] = useState(0)
+  const handlePlay = useCallback(() => setPlayToken((n) => n + 1), [])
 
   // Oldest first. git log lists newest first, so equal dates keep the
   // later array index (older commit) first.
@@ -109,6 +115,7 @@ export default function App() {
             onSelect={setSelectedId}
             visibleIds={visibleIds}
             followId={followId}
+            playToken={playToken}
           />
           {(usingSample || dropped > 0) && (
             <div className="xp-balloon" role="status">
@@ -124,8 +131,7 @@ export default function App() {
         {selectedCommit && (
           <aside className="flex h-full w-80 shrink-0 flex-col gap-3 p-3 pb-13">
             <SidePanel commit={selectedCommit} onClose={() => setSelectedId(null)} />
-            {/* Summary isn't built yet; pass the real text as `summary` once it is. */}
-            <SummaryPanel key={selectedCommit.id} commit={selectedCommit} summary={null} />
+            <SummaryPanel key={selectedCommit.id} commit={selectedCommit} aiEnabled={aiEnabled} />
           </aside>
         )}
 
@@ -136,6 +142,7 @@ export default function App() {
             value={shownCount}
             onChange={scrubTo}
             currentDate={sortedCommits[shownCount - 1]?.date}
+            onPlay={handlePlay}
           />
         </div>
       </div>

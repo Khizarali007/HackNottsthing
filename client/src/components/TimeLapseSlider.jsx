@@ -11,7 +11,8 @@ function stepMs(count) {
 
 // Scrubs through the commit history over time, styled as the XP taskbar.
 // `value` is how many commits (oldest first) are visible.
-export default function TimeLapseSlider({ count, value, onChange, currentDate }) {
+// `onPlay` is called each time playback starts.
+export default function TimeLapseSlider({ count, value, onChange, currentDate, onPlay }) {
   const [playing, setPlaying] = useState(false)
 
   useEffect(() => {
@@ -26,6 +27,7 @@ export default function TimeLapseSlider({ count, value, onChange, currentDate })
   function togglePlay() {
     // Replay from the first commit if we're already at the end.
     if (!playing && value >= count) onChange(1)
+    if (!playing) onPlay?.()
     setPlaying(!playing)
   }
 

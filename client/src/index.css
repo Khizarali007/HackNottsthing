@@ -275,9 +275,10 @@ body {
   line-height: 1.5;
 }
 
-.xp-summary-placeholder {
+.xp-summary-caption {
   margin: 0;
   color: #777;
+  font-size: 11px;
   font-style: italic;
 }
 

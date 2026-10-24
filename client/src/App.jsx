@@ -8,11 +8,12 @@ import TimeLapseSlider from './components/TimeLapseSlider.jsx'
 import useAiConfig from './hooks/useAiConfig.js'
 import useCommitHistory from './hooks/useCommitHistory.js'
 import useStartupSound from './hooks/useStartupSound.js'
-
+import useCommitClassifier from './hooks/useCommitClassifier.js'
 // Root component that composes the graph, side panel and time-lapse slider.
 export default function App() {
   // The hook also returns setCommits for the classifier to write aiCategory back.
   const { commits, status, error, usingSample, total, dropped, retry } = useCommitHistory()
+  const { classifyCommits, categories, status: aiStatus } = useCommitClassifier()
   useStartupSound()
   const aiConfig = useAiConfig()
   // Until the server has answered, treat AI as off.
@@ -47,12 +48,14 @@ export default function App() {
     },
     [sortedCommits],
   )
-
+  const classifiedCommits = useMemo(
+    () => commits.map( (c) => ({...c,aiCategory:categories[c.id]?? c.aiCategory})),
+    [commits,categories],)
   // Looked up by id so the panel picks up aiCategory once it's classified.
   // A commit hidden by the time-lapse closes the panel.
   const selectedCommit = useMemo(
-    () => (visibleIds.has(selectedId) ? commits.find((c) => c.id === selectedId) : null),
-    [commits, selectedId, visibleIds],
+    () => (visibleIds.has(selectedId) ? classifiedCommits.find((c) => c.id === selectedId) : null),
+    [classifiedCommits, selectedId, visibleIds],
   )
 
   useEffect(() => {
@@ -62,6 +65,16 @@ export default function App() {
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
+
+  useEffect( () => {
+    if(aiStatus==='ready' && commits.length>0)
+      {
+        classifyCommits(commits)
+      }
+    },[aiStatus,commits,classifyCommits])
+
+
+
 
   if (status === 'loading') {
     return (
@@ -110,7 +123,7 @@ export default function App() {
       <div className="relative flex h-screen w-screen overflow-hidden xp-desktop">
         <main className="relative min-w-0 flex-1">
           <Graph
-            commits={commits}
+            commits={classifiedCommits}
             selectedId={selectedId}
             onSelect={setSelectedId}
             visibleIds={visibleIds}

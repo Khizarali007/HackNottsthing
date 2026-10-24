@@ -11,7 +11,7 @@ import useStartupSound from './hooks/useStartupSound.js'
 // Root component that composes the graph, side panel and time-lapse slider.
 export default function App() {
   // The hook also returns setCommits for the classifier to write aiCategory back.
-  const { commits, status, error, usingSample, retry } = useCommitHistory()
+  const { commits, status, error, usingSample, total, dropped, retry } = useCommitHistory()
   useStartupSound()
   const [selectedId, setSelectedId] = useState(null)
   const [visibleCount, setVisibleCount] = useState(Infinity)
@@ -110,9 +110,12 @@ export default function App() {
             visibleIds={visibleIds}
             followId={followId}
           />
-          {usingSample && (
+          {(usingSample || dropped > 0) && (
             <div className="xp-balloon" role="status">
-              Backend offline - showing sample data.
+              {usingSample && <div>Backend offline - showing sample data.</div>}
+              {dropped > 0 && (
+                <div>Showing the latest {commits.length} of {total} commits.</div>
+              )}
             </div>
           )}
         </main>

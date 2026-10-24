@@ -3,13 +3,16 @@ import { ReactFlowProvider } from '@xyflow/react'
 import Graph from './components/Graph.jsx'
 import SidePanel from './components/SidePanel.jsx'
 import SummaryPanel from './components/SummaryPanel.jsx'
+import StatusDialog from './components/StatusDialog.jsx'
 import TimeLapseSlider from './components/TimeLapseSlider.jsx'
-import mockData from './data/mockData.json'
+import useCommitHistory from './hooks/useCommitHistory.js'
+import useStartupSound from './hooks/useStartupSound.js'
 
 // Root component that composes the graph, side panel and time-lapse slider.
 export default function App() {
-  // Swapped for a fetch to /api/history once the backend is ready.
-  const [commits, setCommits] = useState(mockData)
+  // The hook also returns setCommits for the classifier to write aiCategory back.
+  const { commits, status, error, usingSample, retry } = useCommitHistory()
+  useStartupSound()
   const [selectedId, setSelectedId] = useState(null)
   const [visibleCount, setVisibleCount] = useState(Infinity)
   const [followId, setFollowId] = useState(null)
@@ -54,6 +57,48 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
+  if (status === 'loading') {
+    return (
+      <div className="h-screen w-screen xp-desktop">
+        <StatusDialog title="GitStory" icon="loading">
+          Reading git history…
+        </StatusDialog>
+      </div>
+    )
+  }
+
+  if (status === 'error') {
+    return (
+      <div className="h-screen w-screen xp-desktop">
+        <StatusDialog
+          title="GitStory - Error"
+          icon="error"
+          action={<button type="button" className="xp-button" onClick={retry}>Retry</button>}
+        >
+          <p>Couldn't load the commit history.</p>
+          <p className="xp-dialog-detail">{error}</p>
+        </StatusDialog>
+      </div>
+    )
+  }
+
+  if (commits.length === 0) {
+    return (
+      <div className="h-screen w-screen xp-desktop">
+        <StatusDialog
+          title="GitStory"
+          icon="info"
+          action={<button type="button" className="xp-button" onClick={retry}>Refresh</button>}
+        >
+          <p>No commits found.</p>
+          <p className="xp-dialog-detail">
+            Start the server inside a git repository that has at least one commit.
+          </p>
+        </StatusDialog>
+      </div>
+    )
+  }
+
   return (
     <ReactFlowProvider>
       <div className="relative flex h-screen w-screen overflow-hidden xp-desktop">
@@ -65,14 +110,19 @@ export default function App() {
             visibleIds={visibleIds}
             followId={followId}
           />
+          {usingSample && (
+            <div className="xp-balloon" role="status">
+              Backend offline - showing sample data.
+            </div>
+          )}
         </main>
 
         {/* Side panel slot (Agent 3) */}
         {selectedCommit && (
           <aside className="flex h-full w-80 shrink-0 flex-col gap-3 p-3 pb-13">
             <SidePanel commit={selectedCommit} onClose={() => setSelectedId(null)} />
-            {/* AI summary isn't built yet; pass summary/loading once it is. */}
-            <SummaryPanel commit={selectedCommit} summary={null} loading={false} />
+            {/* Summary isn't built yet; pass the real text as `summary` once it is. */}
+            <SummaryPanel key={selectedCommit.id} commit={selectedCommit} summary={null} />
           </aside>
         )}
 

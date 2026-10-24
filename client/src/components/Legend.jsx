@@ -5,7 +5,7 @@ import { MAX_IMPACT, nodeSize } from '../lib/layout.js'
 const SIZE_SAMPLES = [0, 100, 500, MAX_IMPACT]
 const SIZE_RATIO = 1 / 10
 
-// Explains node colours (AI category) and sizes (lines changed).
+// Explains node colours (category) and sizes (lines changed).
 export default function Legend() {
   return (
     <div className="xp-window xp-legend">
@@ -13,7 +13,7 @@ export default function Legend() {
         <span className="xp-title">Legend</span>
       </div>
       <div className="xp-body">
-        <p className="xp-legend-heading">Colour = AI category</p>
+        <p className="xp-legend-heading">Colour = category</p>
         <ul className="xp-legend-list">
           {[...CATEGORIES, UNCLASSIFIED].map((c) => (
             <li key={c.label}>

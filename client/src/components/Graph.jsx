@@ -37,11 +37,18 @@ export default function Graph({ commits, selectedId, onSelect, visibleIds, follo
 
   const displayEdges = useMemo(
     () =>
-      edges.map((edge) => ({
-        ...edge,
-        hidden: !visibleIds.has(edge.source) || !visibleIds.has(edge.target),
-      })),
-    [edges, visibleIds],
+      edges.map((edge) => {
+        const active = edge.source === selectedId || edge.target === selectedId
+        return {
+          ...edge,
+          hidden: !visibleIds.has(edge.source) || !visibleIds.has(edge.target),
+          className: active ? 'xp-edge--active' : undefined,
+          animated: active,
+          // Draw highlighted edges above the rest.
+          zIndex: active ? 1 : 0,
+        }
+      }),
+    [edges, visibleIds, selectedId],
   )
 
   // Pan to the newest revealed commit while scrubbing.

@@ -381,3 +381,233 @@ body {
   font-size: 12px;
   white-space: nowrap;
 }
+
+/* ---- Time-lapse fade-in ---- */
+
+/* React Flow mounts a node or edge when it stops being hidden,
+   so a mount animation plays each time the slider reveals one. */
+@keyframes xp-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}
+
+@keyframes xp-edge-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.xp-node {
+  animation: xp-fade-in 350ms ease-out;
+}
+
+.xp-desktop .react-flow__edge {
+  animation: xp-edge-fade-in 350ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xp-node,
+  .xp-desktop .react-flow__edge {
+    animation: none;
+  }
+}
+
+/* ---- Hover tooltip (XP yellow info tip) ---- */
+
+.xp-tooltip {
+  max-width: 280px;
+  padding: 4px 8px;
+  border: 1px solid #000;
+  background: #ffffe1;
+  box-shadow: 2px 2px 4px rgb(0 0 0 / 0.35);
+  color: #000;
+  font: 11px Tahoma, sans-serif;
+  pointer-events: none;
+}
+
+.xp-tooltip-hash {
+  display: block;
+  font-family: "Lucida Console", monospace;
+  font-weight: bold;
+}
+
+/* ---- Selected commit's edges ---- */
+
+.xp-desktop .react-flow__edge.xp-edge--active .react-flow__edge-path {
+  stroke: #ffd700;
+  stroke-width: 4;
+  filter: drop-shadow(0 0 4px rgb(255 215 0 / 0.8));
+}
+
+/* ---- Status dialogs (loading, empty, error) ---- */
+
+.xp-dialog-overlay {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: 16px;
+}
+
+.xp-dialog {
+  width: min(360px, 100%);
+  height: auto;
+  font-size: 12px;
+}
+
+.xp-dialog-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 16px 8px;
+}
+
+.xp-dialog-text p {
+  margin: 0 0 4px;
+}
+
+.xp-dialog-detail {
+  color: #555;
+}
+
+.xp-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 16px 12px;
+}
+
+.xp-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: #fff;
+  font: bold 18px Georgia, serif;
+  box-shadow: inset -2px -2px 4px rgb(0 0 0 / 0.3);
+}
+
+.xp-icon--info {
+  background: radial-gradient(circle at 35% 30%, #7db4ff, #1c5fd4);
+}
+
+.xp-icon--error {
+  background: radial-gradient(circle at 35% 30%, #ff8a73, #c8200e);
+  font-family: Tahoma, sans-serif;
+}
+
+/* XP marquee progress bar: three green blocks sliding across. */
+.xp-progress {
+  position: relative;
+  flex-shrink: 0;
+  width: 140px;
+  height: 16px;
+  overflow: hidden;
+  border: 1px solid #686868;
+  border-radius: 3px;
+  background: #fff;
+}
+
+.xp-progress span {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  width: 8px;
+  background: linear-gradient(to bottom, #a8e4a0, #37b52b 50%, #2f9e25);
+  animation: xp-marquee 1.6s linear infinite;
+}
+
+.xp-progress span:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.xp-progress span:nth-child(3) {
+  animation-delay: 0.24s;
+}
+
+@keyframes xp-marquee {
+  from {
+    left: -30px;
+  }
+  to {
+    left: 150px;
+  }
+}
+
+.xp-button {
+  min-width: 75px;
+  padding: 3px 12px;
+  border: 1px solid #003c74;
+  border-radius: 3px;
+  background: linear-gradient(to bottom, #fff, #ece9d8 85%, #d6d0c5);
+  font: 11px Tahoma, sans-serif;
+  cursor: pointer;
+}
+
+.xp-button:hover {
+  box-shadow: inset 0 0 0 2px #f8b636;
+}
+
+/* ---- Sample-data notice (XP notification balloon) ---- */
+
+.xp-balloon {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  z-index: 5;
+  transform: translateX(-50%);
+  padding: 6px 12px;
+  border: 1px solid #000;
+  border-radius: 8px;
+  background: #ffffe1;
+  box-shadow: 2px 2px 6px rgb(0 0 0 / 0.35);
+  font-size: 12px;
+}
+
+/* ---- Summary loading throbber ---- */
+
+.xp-summary-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #333;
+}
+
+/* Classic ring of eight square dots, each lighting up in turn.
+   steps() keeps it choppy like an old animated GIF. */
+.xp-throbber {
+  position: relative;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+}
+
+.xp-throbber span {
+  position: absolute;
+  top: 13px;
+  left: 13px;
+  width: 6px;
+  height: 6px;
+  background: #0a246a;
+  opacity: 0.15;
+  transform: rotate(calc(var(--i) * 45deg)) translateY(-12px);
+  animation: xp-throbber 0.8s steps(1) infinite;
+  animation-delay: calc(var(--i) * 0.1s - 0.8s);
+}
+
+@keyframes xp-throbber {
+  0% {
+    opacity: 1;
+  }
+  12.5% {
+    opacity: 0.6;
+  }
+  25% {
+    opacity: 0.35;
+  }
+  37.5% {
+    opacity: 0.15;
+  }
+}

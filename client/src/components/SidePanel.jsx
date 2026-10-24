@@ -1,5 +1,10 @@
 import { categoryStyle } from '../lib/categories.js'
 
+function formatDate(value) {
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? 'Unknown date' : date.toLocaleString()
+}
+
 // Shows details for the currently selected commit.
 export default function SidePanel({ commit, onClose }) {
   if (!commit) return null
@@ -21,13 +26,13 @@ export default function SidePanel({ commit, onClose }) {
       </div>
 
       <div className="xp-body xp-panel-body">
-        <p className="xp-panel-message">{commit.message}</p>
+        <p className="xp-panel-message">{commit.message?.trim() || '(no message)'}</p>
 
         <dl className="xp-panel-meta">
           <dt>Author</dt>
-          <dd>{commit.author}</dd>
+          <dd>{commit.author || 'Unknown author'}</dd>
           <dt>Date</dt>
-          <dd>{new Date(commit.date).toLocaleString()}</dd>
+          <dd>{formatDate(commit.date)}</dd>
           <dt>Lines</dt>
           <dd className="xp-stats">
             <span className="xp-added">+{commit.linesAdded}</span>{' '}

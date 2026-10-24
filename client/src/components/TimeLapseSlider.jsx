@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react'
 
-const STEP_MS = 400
+// A full playback takes about a minute, within these per-step limits.
+const PLAYBACK_MS = 60000
+const MIN_STEP_MS = 50
+const MAX_STEP_MS = 600
+
+function stepMs(count) {
+  return Math.min(Math.max(Math.round(PLAYBACK_MS / count), MIN_STEP_MS), MAX_STEP_MS)
+}
 
 // Scrubs through the commit history over time, styled as the XP taskbar.
 // `value` is how many commits (oldest first) are visible.
@@ -12,7 +19,7 @@ export default function TimeLapseSlider({ count, value, onChange, currentDate })
     const timer = setTimeout(() => {
       if (value >= count) setPlaying(false)
       else onChange(value + 1)
-    }, STEP_MS)
+    }, stepMs(count))
     return () => clearTimeout(timer)
   }, [playing, value, count, onChange])
 

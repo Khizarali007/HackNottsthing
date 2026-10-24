@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Handle, NodeToolbar, Position } from '@xyflow/react'
 import { MIN_WIDTH } from '../lib/layout.js'
 import { categoryStyle } from '../lib/categories.js'
+import { shortId } from '../lib/format.js'
 
 // A single commit drawn as a Windows XP window, sized by impact radius.
 // Width and height come from nodeSize() via React Flow.
@@ -17,7 +18,7 @@ export default function CommitNode({ data, selected, width }) {
       {/* Rendered outside the zoomed canvas, so it stays readable at any zoom. */}
       <NodeToolbar isVisible={hovered} position={Position.Top} offset={8}>
         <div className="xp-tooltip">
-          <span className="xp-tooltip-hash">{commit.id}</span>
+          <span className="xp-tooltip-hash">{shortId(commit.id)}</span>
           {message}
         </div>
       </NodeToolbar>
@@ -34,7 +35,7 @@ export default function CommitNode({ data, selected, width }) {
         <Handle type="target" position={Position.Left} className="xp-handle" />
 
         <div className="xp-titlebar">
-          <span className="xp-title">{commit.id}</span>
+          <span className="xp-title" title={commit.id}>{shortId(commit.id)}</span>
           <div className="xp-controls">
             <span className="xp-btn xp-btn--min" />
             <span className="xp-btn xp-btn--max" />

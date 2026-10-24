@@ -11,7 +11,7 @@ import useStartupSound from './hooks/useStartupSound.js'
 // Root component that composes the graph, side panel and time-lapse slider.
 export default function App() {
   // The hook also returns setCommits for the classifier to write aiCategory back.
-  const { commits, status, error, usingSample, retry } = useCommitHistory()
+  const { commits, status, error, usingSample, total, dropped, retry } = useCommitHistory()
   useStartupSound()
   const [selectedId, setSelectedId] = useState(null)
   const [visibleCount, setVisibleCount] = useState(Infinity)
@@ -110,14 +110,17 @@ export default function App() {
             visibleIds={visibleIds}
             followId={followId}
           />
-          {usingSample && (
+          {(usingSample || dropped > 0) && (
             <div className="xp-balloon" role="status">
-              Backend offline - showing sample data.
+              {usingSample && <div>Backend offline - showing sample data.</div>}
+              {dropped > 0 && (
+                <div>Showing the latest {commits.length} of {total} commits.</div>
+              )}
             </div>
           )}
         </main>
 
-        {/* Side panel slot (Agent 3) */}
+        {/* Side panel slot */}
         {selectedCommit && (
           <aside className="flex h-full w-80 shrink-0 flex-col gap-3 p-3 pb-13">
             <SidePanel commit={selectedCommit} onClose={() => setSelectedId(null)} />
@@ -126,7 +129,7 @@ export default function App() {
           </aside>
         )}
 
-        {/* Time-lapse slider slot (Agent 3), docked like the XP taskbar */}
+        {/* Time-lapse slider slot, docked like the XP taskbar */}
         <div className="absolute inset-x-0 bottom-0 z-10">
           <TimeLapseSlider
             count={sortedCommits.length}

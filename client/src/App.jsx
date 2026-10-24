@@ -117,7 +117,7 @@ export default function App() {
           )}
         </main>
 
-        {/* Side panel slot (Agent 3) */}
+        {/* Side panel slot */}
         {selectedCommit && (
           <aside className="flex h-full w-80 shrink-0 flex-col gap-3 p-3 pb-13">
             <SidePanel commit={selectedCommit} onClose={() => setSelectedId(null)} />
@@ -126,7 +126,7 @@ export default function App() {
           </aside>
         )}
 
-        {/* Time-lapse slider slot (Agent 3), docked like the XP taskbar */}
+        {/* Time-lapse slider slot, docked like the XP taskbar */}
         <div className="absolute inset-x-0 bottom-0 z-10">
           <TimeLapseSlider
             count={sortedCommits.length}

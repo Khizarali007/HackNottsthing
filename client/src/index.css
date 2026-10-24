@@ -1,1 +1,613 @@
 @import "tailwindcss";
+
+/* ---- Windows XP theme ---- */
+
+body {
+  font-family: Tahoma, "Segoe UI", Verdana, sans-serif;
+}
+
+.xp-desktop {
+  background: #3a6ea5 url('/bliss.webp') center / cover no-repeat;
+}
+
+/* Let the wallpaper show through the React Flow canvas. */
+.xp-desktop .react-flow {
+  --xy-background-color: transparent;
+  --xy-edge-stroke: #ffffff;
+  --xy-edge-stroke-width: 2;
+}
+
+.xp-desktop .react-flow__edge-path {
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.5));
+}
+
+.xp-window {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: 3px solid #0831d9;
+  border-top-width: 0;
+  border-radius: 8px 8px 0 0;
+  background: #ece9d8;
+  box-shadow: 2px 3px 8px rgb(0 0 0 / 0.45);
+  font-size: calc(11px * var(--xp-scale, 1));
+  color: #000;
+}
+
+.xp-window--active {
+  border-color: #0b5ae6;
+  box-shadow: 0 0 0 3px #ffd700, 0 0 18px 4px rgb(255 215 0 / 0.7);
+}
+
+.xp-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  isolation: isolate;
+  height: calc(24px * var(--xp-scale, 1));
+  padding: 0 3px 0 6px;
+  flex-shrink: 0;
+}
+
+/* Gradient lives on a layer of its own so the category filter
+   recolours it without touching the title text or buttons. */
+.xp-titlebar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 7px 7px 0 0;
+  filter: var(--xp-title-filter, none);
+  background: linear-gradient(
+    to bottom,
+    #0997ff 0%,
+    #0053ee 8%,
+    #0050ee 40%,
+    #0066ff 88%,
+    #0066ff 93%,
+    #005bff 95%,
+    #003dd7 96%,
+    #003dd7 100%
+  );
+}
+
+.xp-title {
+  font-weight: bold;
+  font-size: calc(12px * var(--xp-scale, 1));
+  color: #fff;
+  text-shadow: 1px 1px 0 #0f1089;
+  letter-spacing: 0.3px;
+}
+
+.xp-controls {
+  display: flex;
+  gap: 2px;
+}
+
+.xp-btn {
+  position: relative;
+  padding: 0;
+  width: 18px;
+  height: 18px;
+  border: 1px solid #fff;
+  border-radius: 3px;
+  background: linear-gradient(135deg, #4c8bff 0%, #2163f1 50%, #1450d8 100%);
+}
+
+.xp-btn--close {
+  background: linear-gradient(135deg, #f0937a 0%, #e14f2c 50%, #c53113 100%);
+}
+
+/* Glyphs: minimise underscore, maximise box, close cross. */
+.xp-btn--min::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+  width: 7px;
+  height: 3px;
+  background: #fff;
+}
+
+.xp-btn--max::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 1px solid #fff;
+  border-top-width: 3px;
+}
+
+.xp-btn--close::before,
+.xp-btn--close::after {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 3px;
+  width: 2px;
+  height: 10px;
+  background: #fff;
+  transform: rotate(45deg);
+}
+
+.xp-btn--close::after {
+  transform: rotate(-45deg);
+}
+
+.xp-menubar {
+  padding: 2px 6px;
+  flex-shrink: 0;
+  border-bottom: 1px solid #c5c2b2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.xp-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  margin: 3px 4px 4px;
+  padding: 4px 6px;
+  background: #fff;
+  border: 1px solid #7f9db9;
+}
+
+.xp-message {
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.xp-stats {
+  margin: 0;
+  font-family: "Lucida Console", monospace;
+}
+
+.xp-added {
+  color: #008000;
+}
+
+.xp-deleted {
+  color: #c00000;
+}
+
+.xp-handle {
+  opacity: 0;
+}
+
+.xp-desktop .react-flow__controls,
+.xp-desktop .react-flow__minimap {
+  border: 2px solid #0831d9;
+  border-radius: 4px;
+  box-shadow: 2px 3px 8px rgb(0 0 0 / 0.45);
+}
+
+.xp-desktop .react-flow__controls-button {
+  background: #ece9d8;
+  border-bottom-color: #c5c2b2;
+}
+
+.xp-desktop .react-flow__controls-button:hover {
+  background: #fff;
+}
+
+.xp-desktop .react-flow__minimap {
+  background: rgb(236 233 216 / 0.85);
+}
+
+/* Keep bottom-docked controls clear of the taskbar. */
+.xp-desktop .react-flow__panel.bottom {
+  bottom: 40px;
+}
+
+/* ---- Legend ---- */
+
+.xp-legend {
+  width: 190px;
+  height: auto;
+}
+
+.xp-legend .xp-titlebar {
+  height: 22px;
+}
+
+.xp-legend-heading {
+  margin: 0 0 3px;
+  font-weight: bold;
+}
+
+.xp-legend-list {
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.xp-legend-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 18px;
+}
+
+.xp-swatch {
+  width: 14px;
+  height: 10px;
+  border: 1px solid #000;
+}
+
+.xp-legend-sizes {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.xp-legend-size {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.xp-size-box {
+  border: 1px solid #0831d9;
+  border-top-width: 3px;
+  background: #ece9d8;
+}
+
+/* ---- Side panel ---- */
+
+.xp-panel {
+  height: auto;
+  min-height: 0;
+  flex-shrink: 1;
+  font-size: 12px;
+}
+
+.xp-summary-text {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.xp-summary-placeholder {
+  margin: 0;
+  color: #777;
+  font-style: italic;
+}
+
+.xp-panel .xp-btn {
+  cursor: pointer;
+}
+
+.xp-panel-body {
+  justify-content: flex-start;
+  gap: 10px;
+  overflow-y: auto;
+  padding: 8px 10px;
+}
+
+.xp-panel-message {
+  margin: 0;
+  font-weight: bold;
+  font-size: 13px;
+  word-break: break-word;
+}
+
+.xp-panel-meta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 10px;
+  margin: 0;
+}
+
+.xp-panel-meta dt {
+  color: #555;
+}
+
+.xp-panel-meta dd {
+  margin: 0;
+}
+
+.xp-panel-parents {
+  font-family: "Lucida Console", monospace;
+  word-break: break-all;
+}
+
+.xp-badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: bold;
+}
+
+/* ---- Taskbar (time-lapse slider) ---- */
+
+.xp-taskbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 40px;
+  background: linear-gradient(
+    to bottom,
+    #3168d5 0%,
+    #4993e6 4%,
+    #2157d7 12%,
+    #2663e0 50%,
+    #1941a5 100%
+  );
+  border-top: 1px solid #0c2f8a;
+  color: #fff;
+}
+
+.xp-start {
+  height: 100%;
+  padding: 0 18px 0 12px;
+  border: none;
+  border-radius: 0 12px 12px 0;
+  background: linear-gradient(to bottom, #3c9a3c 0%, #5fbf5f 10%, #3a9a3a 50%, #2a7a2a 100%);
+  color: #fff;
+  font: italic bold 16px Tahoma, sans-serif;
+  text-shadow: 1px 1px 1px #1a3d1a;
+  box-shadow: 2px 0 4px rgb(0 0 0 / 0.4);
+  cursor: pointer;
+}
+
+.xp-start:hover {
+  filter: brightness(1.1);
+}
+
+.xp-range {
+  flex: 1;
+  min-width: 0;
+  accent-color: #3c9a3c;
+  cursor: pointer;
+}
+
+.xp-tray {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 100%;
+  padding: 0 14px;
+  background: linear-gradient(to bottom, #0c59b9 0%, #139ee9 6%, #18b5f2 12%, #139beb 50%, #1290e8 100%);
+  border-left: 1px solid #092e6e;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* ---- Time-lapse fade-in ---- */
+
+/* React Flow mounts a node or edge when it stops being hidden,
+   so a mount animation plays each time the slider reveals one. */
+@keyframes xp-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}
+
+@keyframes xp-edge-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.xp-node {
+  animation: xp-fade-in 350ms ease-out;
+}
+
+.xp-desktop .react-flow__edge {
+  animation: xp-edge-fade-in 350ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xp-node,
+  .xp-desktop .react-flow__edge {
+    animation: none;
+  }
+}
+
+/* ---- Hover tooltip (XP yellow info tip) ---- */
+
+.xp-tooltip {
+  max-width: 280px;
+  padding: 4px 8px;
+  border: 1px solid #000;
+  background: #ffffe1;
+  box-shadow: 2px 2px 4px rgb(0 0 0 / 0.35);
+  color: #000;
+  font: 11px Tahoma, sans-serif;
+  pointer-events: none;
+}
+
+.xp-tooltip-hash {
+  display: block;
+  font-family: "Lucida Console", monospace;
+  font-weight: bold;
+}
+
+/* ---- Selected commit's edges ---- */
+
+.xp-desktop .react-flow__edge.xp-edge--active .react-flow__edge-path {
+  stroke: #ffd700;
+  stroke-width: 4;
+  filter: drop-shadow(0 0 4px rgb(255 215 0 / 0.8));
+}
+
+/* ---- Status dialogs (loading, empty, error) ---- */
+
+.xp-dialog-overlay {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: 16px;
+}
+
+.xp-dialog {
+  width: min(360px, 100%);
+  height: auto;
+  font-size: 12px;
+}
+
+.xp-dialog-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 16px 8px;
+}
+
+.xp-dialog-text p {
+  margin: 0 0 4px;
+}
+
+.xp-dialog-detail {
+  color: #555;
+}
+
+.xp-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 16px 12px;
+}
+
+.xp-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: #fff;
+  font: bold 18px Georgia, serif;
+  box-shadow: inset -2px -2px 4px rgb(0 0 0 / 0.3);
+}
+
+.xp-icon--info {
+  background: radial-gradient(circle at 35% 30%, #7db4ff, #1c5fd4);
+}
+
+.xp-icon--error {
+  background: radial-gradient(circle at 35% 30%, #ff8a73, #c8200e);
+  font-family: Tahoma, sans-serif;
+}
+
+/* XP marquee progress bar: three green blocks sliding across. */
+.xp-progress {
+  position: relative;
+  flex-shrink: 0;
+  width: 140px;
+  height: 16px;
+  overflow: hidden;
+  border: 1px solid #686868;
+  border-radius: 3px;
+  background: #fff;
+}
+
+.xp-progress span {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  width: 8px;
+  background: linear-gradient(to bottom, #a8e4a0, #37b52b 50%, #2f9e25);
+  animation: xp-marquee 1.6s linear infinite;
+}
+
+.xp-progress span:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.xp-progress span:nth-child(3) {
+  animation-delay: 0.24s;
+}
+
+@keyframes xp-marquee {
+  from {
+    left: -30px;
+  }
+  to {
+    left: 150px;
+  }
+}
+
+.xp-button {
+  min-width: 75px;
+  padding: 3px 12px;
+  border: 1px solid #003c74;
+  border-radius: 3px;
+  background: linear-gradient(to bottom, #fff, #ece9d8 85%, #d6d0c5);
+  font: 11px Tahoma, sans-serif;
+  cursor: pointer;
+}
+
+.xp-button:hover {
+  box-shadow: inset 0 0 0 2px #f8b636;
+}
+
+/* ---- Sample-data notice (XP notification balloon) ---- */
+
+.xp-balloon {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  z-index: 5;
+  transform: translateX(-50%);
+  padding: 6px 12px;
+  border: 1px solid #000;
+  border-radius: 8px;
+  background: #ffffe1;
+  box-shadow: 2px 2px 6px rgb(0 0 0 / 0.35);
+  font-size: 12px;
+}
+
+/* ---- Summary loading throbber ---- */
+
+.xp-summary-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #333;
+}
+
+/* Classic ring of eight square dots, each lighting up in turn.
+   steps() keeps it choppy like an old animated GIF. */
+.xp-throbber {
+  position: relative;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+}
+
+.xp-throbber span {
+  position: absolute;
+  top: 13px;
+  left: 13px;
+  width: 6px;
+  height: 6px;
+  background: #0a246a;
+  opacity: 0.15;
+  transform: rotate(calc(var(--i) * 45deg)) translateY(-12px);
+  animation: xp-throbber 0.8s steps(1) infinite;
+  animation-delay: calc(var(--i) * 0.1s - 0.8s);
+}
+
+@keyframes xp-throbber {
+  0% {
+    opacity: 1;
+  }
+  12.5% {
+    opacity: 0.6;
+  }
+  25% {
+    opacity: 0.35;
+  }
+  37.5% {
+    opacity: 0.15;
+  }
+}

@@ -1,0 +1,363 @@
+[
+  {
+    "id": "e8bf5b2",
+    "parents": [
+      "3f62cda"
+    ],
+    "author": "Alex Morgan",
+    "date": "2026-10-25T10:43:00Z",
+    "message": "Release v1.0.0",
+    "linesAdded": 1,
+    "linesDeleted": 1,
+    "aiCategory": null
+  },
+  {
+    "id": "3f62cda",
+    "parents": [
+      "8bf94fb"
+    ],
+    "author": "Khizar Ali Khan",
+    "date": "2026-10-25T09:56:00Z",
+    "message": "Update demo screenshots",
+    "linesAdded": 2,
+    "linesDeleted": 0,
+    "aiCategory": null
+  },
+  {
+    "id": "8bf94fb",
+    "parents": [
+      "5d0688f"
+    ],
+    "author": "Sreyas S",
+    "date": "2026-10-25T09:09:00Z",
+    "message": "Optimise layout for 500+ commits",
+    "linesAdded": 64,
+    "linesDeleted": 47,
+    "aiCategory": null
+  },
+  {
+    "id": "5d0688f",
+    "parents": [
+      "022ea21"
+    ],
+    "author": "Alex Morgan",
+    "date": "2026-10-25T08:22:00Z",
+    "message": "Fall back gracefully when model download fails",
+    "linesAdded": 39,
+    "linesDeleted": 12,
+    "aiCategory": null
+  },
+  {
+    "id": "022ea21",
+    "parents": [
+      "8ddd031"
+    ],
+    "author": "Khizar Ali Khan",
+    "date": "2026-10-25T07:35:00Z",
+    "message": "Add loading spinner and empty state",
+    "linesAdded": 73,
+    "linesDeleted": 5,
+    "aiCategory": null
+  },
+  {
+    "id": "8ddd031",
+    "parents": [
+      "a47b104",
+      "ce9cc89"
+    ],
+    "author": "Sreyas S",
+    "date": "2026-10-25T06:48:00Z",
+    "message": "Merge branch 'refactor/modules' into main",
+    "linesAdded": 0,
+    "linesDeleted": 0,
+    "aiCategory": null
+  },
+  {
+    "id": "a47b104",
+    "parents": [
+      "348e716"
+    ],
+    "author": "Alex Morgan",
+    "date": "2026-10-25T06:01:00Z",
+    "message": "Remove stray console.log",
+    "linesAdded": 0,
+    "linesDeleted": 1,
+    "aiCategory": null
+  },
+  {
+    "id": "ce9cc89",
+    "parents": [
+      "03e5ea6"
+    ],
+    "author": "Sreyas S",
+    "date": "2026-10-25T05:14:00Z",
+    "message": "Fix import paths after restructure",
+    "linesAdded": 28,
+    "linesDeleted": 28,
+    "aiCategory": null
+  },
+  {
+    "id": "348e716",
+    "parents": [
+      "b6e2a27"
+    ],
+    "author": "Khizar Ali Khan",
+    "date": "2026-10-25T04:27:00Z",
+    "message": "Polish side panel transitions",
+    "linesAdded": 46,
+    "linesDeleted": 21,
+    "aiCategory": null
+  },
+  {
+    "id": "03e5ea6",
+    "parents": [
+      "b6e2a27"
+    ],
+    "author": "Sreyas S",
+    "date": "2026-10-25T03:40:00Z",
+    "message": "Refactor: migrate entire codebase to TypeScript-style JSDoc and restructure modules",
+    "linesAdded": 4820,
+    "linesDeleted": 3675,
+    "aiCategory": null
+  },
+  {
+    "id": "b6e2a27",
+    "parents": [
+      "5a68af4"
+    ],
+    "author": "Khizar Ali Khan",
+    "date": "2026-10-25T02:53:00Z",
+    "message": "Add TimeLapseSlider with play/pause",
+    "linesAdded": 162,
+    "linesDeleted": 14,
+    "aiCategory": null
+  },
+  {
+    "id": "5a68af4",
+    "parents": [
+      "f8ee2d1",
+      "f8ce05e"
+    ],
+    "author": "Alex Morgan",
+    "date": "2026-10-25T02:06:00Z",
+    "message": "Merge branch 'feature/ai-panel' into main",
+    "linesAdded": 0,
+    "linesDeleted": 0,
+    "aiCategory": null
+  },
+  {
+    "id": "f8ce05e",
+    "parents": [
+      "7ac7bbf"
+    ],
+    "author": "Alex Morgan",
+    "date": "2026-10-25T01:19:00Z",
+    "message": "Fix null aiCategory badge rendering",
+    "linesAdded": 5,
+    "linesDeleted": 3,
+    "aiCategory": null
+  },
+  {
+    "id": "7ac7bbf",
+    "parents": [
+      "f0204d5"
+    ],
+    "author": "Alex Morgan",
+    "date": "2026-10-25T00:32:00Z",
+    "message": "Build SidePanel component",
+    "linesAdded": 184,
+    "linesDeleted": 9,
+    "aiCategory": null
+  },
+  {
+    "id": "f8ee2d1",
+    "parents": [
+      "beb8f9d"
+    ],
+    "author": "Sreyas S",
+    "date": "2026-10-24T23:45:00Z",
+    "message": "Fix crash on commits with no parents",
+    "linesAdded": 7,
+    "linesDeleted": 2,
+    "aiCategory": null
+  },
+  {
+    "id": "f0204d5",
+    "parents": [
+      "de4d92f"
+    ],
+    "author": "Alex Morgan",
+    "date": "2026-10-24T22:58:00Z",
+    "message": "Add useCommitClassifier hook",
+    "linesAdded": 97,
+    "linesDeleted": 2,
+    "aiCategory": null
+  },
+  {
+    "id": "beb8f9d",
+    "parents": [
+      "b9596f6"
+    ],
+    "author": "Sreyas S",
+    "date": "2026-10-24T22:11:00Z",
+    "message": "Handle pipes and quotes in commit messages",
+    "linesAdded": 34,
+    "linesDeleted": 11,
+    "aiCategory": null
+  },
+  {
+    "id": "de4d92f",
+    "parents": [
+      "b9596f6"
+    ],
+    "author": "Alex Morgan",
+    "date": "2026-10-24T21:24:00Z",
+    "message": "Add Transformers.js web worker",
+    "linesAdded": 245,
+    "linesDeleted": 6,
+    "aiCategory": null
+  },
+  {
+    "id": "b9596f6",
+    "parents": [
+      "47b90cf",
+      "0931629"
+    ],
+    "author": "Khizar Ali Khan",
+    "date": "2026-10-24T20:37:00Z",
+    "message": "Merge branch 'feature/graph' into main",
+    "linesAdded": 0,
+    "linesDeleted": 0,
+    "aiCategory": null
+  },
+  {
+    "id": "0931629",
+    "parents": [
+      "d2f7c75"
+    ],
+    "author": "Khizar Ali Khan",
+    "date": "2026-10-24T19:50:00Z",
+    "message": "Scale nodes by impact radius",
+    "linesAdded": 88,
+    "linesDeleted": 17,
+    "aiCategory": null
+  },
+  {
+    "id": "47b90cf",
+    "parents": [
+      "604c59d"
+    ],
+    "author": "Alex Morgan",
+    "date": "2026-10-24T19:03:00Z",
+    "message": "Bump vite to 8.3.4",
+    "linesAdded": 3,
+    "linesDeleted": 3,
+    "aiCategory": null
+  },
+  {
+    "id": "d2f7c75",
+    "parents": [
+      "fdf328f"
+    ],
+    "author": "Khizar Ali Khan",
+    "date": "2026-10-24T18:16:00Z",
+    "message": "Integrate dagre auto-layout",
+    "linesAdded": 132,
+    "linesDeleted": 58,
+    "aiCategory": null
+  },
+  {
+    "id": "604c59d",
+    "parents": [
+      "a2eaa3e"
+    ],
+    "author": "Sreyas S",
+    "date": "2026-10-24T17:29:00Z",
+    "message": "Parse --numstat output for line counts",
+    "linesAdded": 96,
+    "linesDeleted": 22,
+    "aiCategory": null
+  },
+  {
+    "id": "fdf328f",
+    "parents": [
+      "1993e0a"
+    ],
+    "author": "Khizar Ali Khan",
+    "date": "2026-10-24T16:42:00Z",
+    "message": "Map commits to nodes and edges",
+    "linesAdded": 156,
+    "linesDeleted": 40,
+    "aiCategory": null
+  },
+  {
+    "id": "a2eaa3e",
+    "parents": [
+      "f14e958"
+    ],
+    "author": "Sreyas S",
+    "date": "2026-10-24T15:55:00Z",
+    "message": "Add git log parser skeleton",
+    "linesAdded": 178,
+    "linesDeleted": 3,
+    "aiCategory": null
+  },
+  {
+    "id": "1993e0a",
+    "parents": [
+      "f14e958"
+    ],
+    "author": "Khizar Ali Khan",
+    "date": "2026-10-24T15:08:00Z",
+    "message": "Add React Flow canvas",
+    "linesAdded": 214,
+    "linesDeleted": 12,
+    "aiCategory": null
+  },
+  {
+    "id": "f14e958",
+    "parents": [
+      "86cc2fe"
+    ],
+    "author": "Alex Morgan",
+    "date": "2026-10-24T14:21:00Z",
+    "message": "Fix typo in README",
+    "linesAdded": 1,
+    "linesDeleted": 1,
+    "aiCategory": null
+  },
+  {
+    "id": "86cc2fe",
+    "parents": [
+      "d286d9f"
+    ],
+    "author": "Khizar Ali Khan",
+    "date": "2026-10-24T13:34:00Z",
+    "message": "Add README and setup instructions",
+    "linesAdded": 120,
+    "linesDeleted": 8,
+    "aiCategory": null
+  },
+  {
+    "id": "d286d9f",
+    "parents": [
+      "699d4c7"
+    ],
+    "author": "Sreyas S",
+    "date": "2026-10-24T12:47:00Z",
+    "message": "Scaffold Express server and Vite client",
+    "linesAdded": 860,
+    "linesDeleted": 4,
+    "aiCategory": null
+  },
+  {
+    "id": "699d4c7",
+    "parents": [],
+    "author": "Sreyas S",
+    "date": "2026-10-24T12:00:00Z",
+    "message": "Initial commit",
+    "linesAdded": 42,
+    "linesDeleted": 0,
+    "aiCategory": null
+  }
+]

@@ -612,3 +612,167 @@ body {
     opacity: 0.15;
   }
 }
+
+/* ---- Start-up sequence (loading dialog, then welcome screen) ---- */
+
+/* Sits above everything, including the taskbar and graph controls. */
+.xp-boot {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+}
+
+.xp-boot--leaving {
+  pointer-events: none;
+  animation: xp-boot-fade-out 400ms ease-in forwards;
+}
+
+.xp-boot-dialog {
+  width: min(460px, 90vw);
+  height: auto;
+  font-size: 12px;
+}
+
+.xp-boot-dialog-body {
+  padding: 22px 18px 20px;
+}
+
+.xp-boot-loading-text {
+  margin: 0 0 18px;
+  text-align: center;
+  font-size: 16px;
+}
+
+.xp-boot-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Sunken white field holding 20 separate blocks. */
+.xp-boot-progress {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(20, 1fr);
+  gap: 2px;
+  height: 20px;
+  padding: 2px;
+  border: 1px solid #7a7a7a;
+  border-radius: 2px;
+  background: #fff;
+  box-shadow: inset 1px 1px 0 #c0c0c0;
+}
+
+.xp-boot-block {
+  border-radius: 1px;
+}
+
+.xp-boot-block--lit {
+  background: linear-gradient(to bottom, #c4f5bd 0%, #7ee07a 35%, #4ccb45 70%, #2c9e27 100%);
+  box-shadow: inset 0 -1px 0 rgb(0 0 0 / 0.15);
+}
+
+.xp-boot-shake {
+  animation: xp-boot-shake 400ms ease-in-out;
+}
+
+/* Full-screen welcome. The base colour and glow are the middle area;
+   the top and bottom bands are drawn over it. */
+.xp-boot-welcome {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle 18vw at 8% 17%, #8eaded 0%, #7597e5 45%, #5a7edc 100%),
+    #5a7edc;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+  animation: xp-boot-fade-in 250ms ease-out;
+}
+
+.xp-boot-top {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 12.8%;
+  background: #00309c;
+  border-bottom: 2px solid #8ebcf0;
+}
+
+.xp-boot-word {
+  position: absolute;
+  left: 45%;
+  top: 48%;
+  transform: translateY(-50%);
+  color: #fff;
+  font: italic bold clamp(36px, 7.4vh, 84px) "Franklin Gothic Medium", "Trebuchet MS", Tahoma, sans-serif;
+  text-shadow: 3px 3px 0 #1b2f8a;
+  white-space: nowrap;
+}
+
+.xp-boot-bottom {
+  position: absolute;
+  inset: 84.7% 0 0;
+  background: linear-gradient(to right, #3832ac 0%, #1c30a3 50%, #00309c 100%);
+}
+
+/* Orange divider, strongest at the left. */
+.xp-boot-bottom::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: linear-gradient(to right, #e59677 0%, rgb(229 150 119 / 0.6) 35%, transparent 70%);
+}
+
+.xp-boot-prompt {
+  position: absolute;
+  left: 5%;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #fff;
+  font-size: 16px;
+  animation: xp-boot-pulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes xp-boot-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes xp-boot-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes xp-boot-pulse {
+  to {
+    opacity: 0.45;
+  }
+}
+
+@keyframes xp-boot-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-8px);
+  }
+  40%,
+  80% {
+    transform: translateX(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xp-boot--leaving,
+  .xp-boot-welcome,
+  .xp-boot-prompt,
+  .xp-boot-shake {
+    animation: none;
+  }
+}

@@ -9,12 +9,35 @@ import useAiConfig from './hooks/useAiConfig.js'
 import useCommitHistory from './hooks/useCommitHistory.js'
 import useStartupSound from './hooks/useStartupSound.js'
 import useCommitClassifier from './hooks/useCommitClassifier.js'
-// Root component that composes the graph, side panel and time-lapse slider.
+import BootScreen from './components/BootScreen.jsx'
+import { shouldSkipBoot } from './lib/boot.js'
+
+// ?boot=off skips the start-up sequence (handy while developing).
+const skipBoot = shouldSkipBoot(window.location.search)
+
+// Wraps the app with the start-up sequence. The app stays mounted behind it
+// so the history loads and the graph lays out while the splash is up.
 export default function App() {
+  const history = useCommitHistory()
+  const [booting, setBooting] = useState(!skipBoot)
+  const finishBoot = useCallback(() => setBooting(false), [])
+  useStartupSound({ enabled: skipBoot })
+
+  return (
+    <>
+      <div inert={booting}>
+        <AppContent history={history} />
+      </div>
+      {booting && <BootScreen ready={history.status !== 'loading'} onDone={finishBoot} />}
+    </>
+  )
+}
+
+// Composes the graph, side panel and time-lapse slider.
+function AppContent({ history }) {
   // The hook also returns setCommits for the classifier to write aiCategory back.
-  const { commits, status, error, usingSample, total, dropped, retry } = useCommitHistory()
+  const { commits, status, error, usingSample, total, dropped, retry } = history
   const { classifyCommits, categories, status: aiStatus } = useCommitClassifier()
-  useStartupSound()
   const aiConfig = useAiConfig()
   // Until the server has answered, treat AI as off.
   const aiEnabled = aiConfig.ready && aiConfig.enabled

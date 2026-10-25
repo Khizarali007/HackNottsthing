@@ -10,7 +10,7 @@ export default class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    console.error('GitStory crashed:', error, info.componentStack)
+    console.error('Commit Explorer crashed:', error, info.componentStack)
   }
 
   render() {
@@ -19,7 +19,7 @@ export default class ErrorBoundary extends Component {
     return (
       <div className="h-screen w-screen xp-desktop">
         <StatusDialog
-          title="GitStory - Error"
+          title="Commit Explorer - Error"
           icon="error"
           action={
             <button type="button" className="xp-button" onClick={() => window.location.reload()}>
@@ -27,7 +27,7 @@ export default class ErrorBoundary extends Component {
             </button>
           }
         >
-          <p>Something went wrong and GitStory has to reload.</p>
+          <p>Something went wrong and Commit Explorer has to reload.</p>
           <p className="xp-dialog-detail">{String(this.state.error.message || this.state.error)}</p>
         </StatusDialog>
       </div>

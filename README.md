@@ -1,8 +1,8 @@
-# GitStory
+# Commit Explorer
 
 > Turns any public GitHub repo's commit history into an explorable Windows XP-style graph: size shows how much changed, colour shows what kind of change it was, and a time-lapse replays how the project grew.
 
-A normal `git log` is a long wall of text. GitStory draws the same history as a map you can pan, zoom, search and play back, so you can see where the big changes happened, who made them and what kind of work each commit was, without reading a single diff.
+A normal `git log` is a long wall of text. Commit Explorer draws the same history as a map you can pan, zoom, search and play back, so you can see where the big changes happened, who made them and what kind of work each commit was, without reading a single diff.
 
 ## Features
 
@@ -22,7 +22,7 @@ Finally, a couple of desktop icons in the top right round out the workspace. One
 
 ## How the AI works
 
-GitStory uses AI in two separate places. The first is always on and fully local. The second is optional and off by default.
+Commit Explorer uses AI in two separate places. The first is always on and fully local. The second is optional and off by default.
 
 ### 1. Commit classification (always on, runs in your browser)
 
@@ -135,4 +135,4 @@ The full request and response details are in [SETUP.md](SETUP.md).
 
 ## Credits
 
-GitStory is a fan-made, non-commercial tribute to the Windows XP look. Windows XP is a trademark of Microsoft, and the wallpaper, icons and sounds that recreate its look belong to their respective owners. This project is not affiliated with or endorsed by Microsoft.
+Commit Explorer is a fan-made, non-commercial tribute to the Windows XP look. Windows XP is a trademark of Microsoft, and the wallpaper, icons and sounds that recreate its look belong to their respective owners. This project is not affiliated with or endorsed by Microsoft.

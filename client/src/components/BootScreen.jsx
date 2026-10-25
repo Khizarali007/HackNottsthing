@@ -82,18 +82,18 @@ export default function BootScreen({ ready, onDone }) {
             onAnimationEnd={(e) => e.target === e.currentTarget && setShaking(false)}
           >
             <div className="xp-titlebar">
-              <span className="xp-title">GitStory</span>
+              <span className="xp-title">Commit Explorer</span>
               <div className="xp-controls" aria-hidden="true">
                 <span className="xp-btn xp-btn--close" />
               </div>
             </div>
             <div className="xp-boot-dialog-body">
-              <p className="xp-boot-loading-text">Loading GitStory...</p>
+              <p className="xp-boot-loading-text">Loading Commit Explorer...</p>
               <div className="xp-boot-progress-row">
                 <div
                   className="xp-boot-progress"
                   role="progressbar"
-                  aria-label="Loading GitStory"
+                  aria-label="Loading Commit Explorer"
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-valuenow={percent}

@@ -1,7 +1,7 @@
 {
   "name": "server",
   "version": "0.0.0",
-  "description": "GitStory back end: reads git history and serves it as JSON.",
+  "description": "Commit Explorer back end: reads git history and serves it as JSON.",
   "private": true,
   "type": "module",
   "main": "index.js",

@@ -1,4 +1,4 @@
-# GitStory Setup
+# Commit Explorer Setup
 
 ## Requirements
 

@@ -128,7 +128,7 @@ function AppContent({ history, repoUrl, onRepoChange }) {
     return (
       <div className="h-screen w-screen xp-desktop">
         {picker}
-        <StatusDialog title="GitStory" icon="loading">
+        <StatusDialog title="Commit Explorer" icon="loading">
           Reading git history…
         </StatusDialog>
       </div>
@@ -140,7 +140,7 @@ function AppContent({ history, repoUrl, onRepoChange }) {
       <div className="h-screen w-screen xp-desktop">
         {picker}
         <StatusDialog
-          title="GitStory - Error"
+          title="Commit Explorer - Error"
           icon="error"
           action={<button type="button" className="xp-button" onClick={retry}>Retry</button>}
         >
@@ -156,7 +156,7 @@ function AppContent({ history, repoUrl, onRepoChange }) {
       <div className="h-screen w-screen xp-desktop">
         {picker}
         <StatusDialog
-          title="GitStory"
+          title="Commit Explorer"
           icon="info"
           action={<button type="button" className="xp-button" onClick={retry}>Refresh</button>}
         >

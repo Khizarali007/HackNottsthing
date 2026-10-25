@@ -7,6 +7,7 @@ import StatusDialog from './components/StatusDialog.jsx'
 import TimeLapseSlider from './components/TimeLapseSlider.jsx'
 import RepoPicker from './components/RepoPicker.jsx'
 import ReadmeLauncher from './components/ReadmeLauncher.jsx'
+import AuthorsLauncher from './components/AuthorsLauncher.jsx'
 import useAiConfig from './hooks/useAiConfig.js'
 import useCommitHistory from './hooks/useCommitHistory.js'
 import useStartupSound from './hooks/useStartupSound.js'
@@ -182,9 +183,11 @@ function AppContent({ history, repoUrl, onRepoChange }) {
             playToken={playToken}
             findSlot={findSlot}
           />
-          {/* Top right, under the toolbar row. */}
-          <div className="absolute right-4 top-14 z-10">
+          {/* Top right. With the side panel open they sit further left, where the
+              find box can reach, so they drop below the toolbar row. */}
+          <div className={`absolute right-4 ${selectedCommit ? 'top-14' : 'top-8'} z-10 flex flex-col items-center gap-2`}>
             <ReadmeLauncher key={repoUrl ?? 'default'} repoUrl={repoUrl} />
+            <AuthorsLauncher key={`authors-${repoUrl ?? 'default'}`} commits={commits} total={total} />
           </div>
           {(usingSample || dropped > 0) && (
             <div className="xp-balloon" role="status">

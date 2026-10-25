@@ -1,417 +1,136 @@
-# GitStory (HackNotts)
+# GitStory
 
-> An interactive codebase visualizer that turns standard Git logs into an explorable node graph, sizing commits by impact and categorising them using local AI.
+> Turn any public GitHub repo's commit history into an explorable Windows XP-style graph: size shows how much changed, colour shows what kind of change it was, and a time-lapse replays how the project grew.
 
-## Table of Contents
+A normal `git log` is a long wall of text. GitStory draws the same history as a map you can pan, zoom, search and play back, so you can see where the big changes happened, who made them and what kind of work each commit was, without reading a single diff.
 
-1. [Executive Overview](#1-executive-overview)
-2. [Project Brief](#2-project-brief)
-3. [Architecture & Shared Contracts](#3-architecture--shared-contracts)
-4. [Workstream Ownership](#4-workstream-ownership)
-5. [Parallel Execution Plan](#5-parallel-execution-plan)
-6. [Agent Prompts](#6-agent-prompts)
-7. [Master Timeline](#7-master-timeline)
-8. [Testing & Launch Checklist](#8-testing--launch-checklist)
-9. [Risk Register](#9-risk-register)
-10. [Operating Instructions](#10-operating-instructions)
+## Features
 
----
+- **Impact-sized nodes.** Each commit is a window whose size follows the number of lines it added and deleted. Big refactors and code dumps are physically big, one-line fixes are small. A legend explains the scale.
+- **Time-lapse playback.** The XP taskbar at the bottom has a Play button and a slider. Press Play and the graph draws itself commit by commit (a full replay takes about a minute) while the camera follows the newest commit. Drag the slider to scrub to any point.
+- **Local commit classification.** Every commit is tagged Feature, Bugfix, Refactor or Chore and coloured to match. This runs in your browser, with no account or API key. See [How the AI works](#how-the-ai-works).
+- **Load any public GitHub repo.** Type `https://github.com/owner/repo` into the address bar and press Go. Leave it blank to see this project's own history.
+- **Find.** A Ctrl+F-style box beside the address bar. It matches commit messages, author names and hashes, highlights the matches, dims the rest and steps through them ("3 of 12") with Enter.
+- **Commit details.** Click a node to open a side panel with the full message, hash, author, date, lines added and removed, category and parent commits (merges show every parent).
+- **Commit summaries.** A Generate summary button describes the selected commit in plain English. See [How the AI works](#how-the-ai-works).
+- **README window.** The icon in the top right opens the repo's README in a Notepad-style window (plain text, and blank if the repo has none).
+- **Authors window.** The icon below it lists every author in the repo with their number of commits and share of the history.
+- **Windows XP everything.** An XP boot and welcome screen with the startup sound, plus XP windows, title bars, buttons and taskbar throughout. Open `http://localhost:5173/?boot=off` to skip the boot screen.
+- **Works on real repos.** Merge commits and every branch are included. Very large repos show the newest 500 commits (the app says so), only visible nodes are drawn, and a minimap and zoom controls help you get around. If the backend can't be reached, the app falls back to sample data and says so.
 
-## 1. Executive Overview
+## How the AI works
 
-GitStory is a local developer tool that parses a Git repository and visualises its commit history as an interactive, explorable graph. To comply with HackNotts' strict rules against cloud-based LLM wrapper apps, it relies entirely on local processing:
+GitStory uses AI in two separate places. The first is always on and fully local. The second is optional and off by default.
 
-- **Backend:** Node.js executing native `git` commands
-- **Frontend:** React Flow for rendering
-- **AI:** Transformers.js running a local ML model in the browser to categorise commits
+### 1. Commit classification (always on, runs in your browser)
 
-The three-agent parallel strategy splits work along strict architectural boundaries to avoid merge conflicts:
+- **Model:** a small zero-shot classifier, `Xenova/mobilebert-uncased-mnli`, run with [Transformers.js](https://github.com/huggingface/transformers.js) inside a Web Worker so the page never freezes while it loads or works.
+- **How it decides:** for each commit message it scores four labels ("bug fix", "new feature", "code refactoring", "chore") and keeps the best one if it is at least 40% confident. Otherwise the commit stays Unclassified rather than guessing.
+- **Shortcuts:** messages that start with "merge" or mention a README are marked Chore, and one-word messages are left Unclassified.
+- **Privacy:** commit messages never leave your browser for this. The model files are downloaded once from Hugging Face the first time the app loads (so that first run needs internet) and are cached by the browser afterwards.
+- **If it can't load:** the graph still works. Nodes stay the default blue, and the side panel shows "AI offline" in place of a category. Colours appear as results come in.
+- **Limits:** it judges the message text only, not the code, so vague messages like "fix stuff" can be misread.
 
-| Agent | Area | Owns |
-|-------|------|------|
-| **Agent 1** | Frontend & Graph UX | React Vite app, React Flow implementation, overall UI |
-| **Agent 2** | Backend & Parsing | Node.js Express server, `child_process` execution, raw Git output parsing |
-| **Agent 3** | AI & Capability | Local Transformers.js zero-shot classification pipeline, commit details side panel, **Time-Lapse Playback Slider UI** |
+### 2. Commit summaries (optional, off by default)
 
----
+Clicking **Generate summary** on a selected commit shows a short plain-English description. What you get depends on whether Gemini is switched on.
 
-## 2. Project Brief
+| | Gemini off (the default) | Gemini on |
+|---|---|---|
+| What you see | A basic summary built in the browser from the commit's own data | A 2–3 sentence summary written by Google Gemini |
+| Example | "A medium change that adds 120 lines and removes 14 lines. Made by Khizar Ali Khan on 25 October 2026." | A short description of what the commit changes and why it matters to someone new to the project |
+| Calls to Gemini | None | The server calls the Gemini API |
+| Caption under the text | "Basic summary - AI is switched off" | None |
 
-| | |
-|---|---|
-| **Product name** | GitStory |
-| **Elevator pitch** | An interactive codebase visualizer that turns standard Git logs into an explorable node graph, sizing commits by impact and categorising them using local AI. |
-| **Target audience** | Developers onboarding to new projects or reviewing long pull requests. |
-| **Main pain point** | Terminal `git log` output and flat GitHub histories obscure the true architectural impact and intent of commits. |
-| **USP** | Node size is bound to lines changed ("impact radius"), commits are auto-categorised via in-browser ML without external APIs, and history is animated via a time-lapse playback. |
-| **Demo objective** | A slick 60-second visual playback of a repo growing, with massive refactors as giant nodes and bug fixes colour-coded automatically. |
+- **Off by default.** Summaries only use Gemini when `GEMINI_ENABLED=true` is set **and** a key is present in `server/.env`. With nothing configured, no request is ever made. Setup is in [SETUP.md](SETUP.md).
+- **What is sent when it is on:** the commit message, author, date, parent count, and the names and line counts of up to 25 changed files. File contents are never sent. The commit text is passed as data, with instructions to ignore anything in it that reads like a command.
+- **The key stays on the server.** It lives only in the git-ignored `server/.env`, is never sent to the browser and is never logged.
+- **Cost guard-rails.** The server makes at most 30 Gemini calls per run by default, and caches each summary so asking again for the same commit costs nothing.
+- **It fails safe.** If Gemini is unreachable or the call limit is hit, the panel shows the basic summary with the caption "AI unavailable - showing basic summary".
+- **The long wait is on purpose.** The summary button plays a retro loading screen with sound for about 21 seconds, with AI on or off. It is part of the XP theme, not lag.
 
-### ✨ Key Features
+## Run it
 
-- **Time-Lapse Playback:** A built-in timeline slider that draws the graph chronologically. Watch branches diverge, merge, and grow in real-time to understand the exact evolution of the codebase.
-- **Impact Radius (Dynamic Node Sizing):** Nodes scale dynamically based on the number of lines added and deleted. Massive refactors become physically massive nodes, instantly showing where the heavy lifting happened.
-- **Local AI Auto-Categorisation:** GitStory runs a lightweight, zero-shot machine learning model **entirely locally in the browser** using Transformers.js. It reads commit messages and automatically color-codes nodes by intent (e.g., *Feature*, *Bugfix*, *Refactor*)—no cloud LLM APIs, no rate limits, and full compliance with HackNotts AI rules.
-- **Interactive 2D Graph:** Powered by React Flow and Dagre, the commit tree is auto-layouted into a clean, pan-and-zoomable web canvas.
-- **Slide-out Metadata Panel:** Click any node to instantly view the commit author, timestamp, exact line stat changes, and the AI-generated classification.
+You need [Node.js](https://nodejs.org) 20 or newer and `git` installed.
 
-### Core User Journey
+```bash
+npm run install:all
+npm run dev
+```
 
-1. **User** starts the local Node server in a target Git directory and opens the React app.
-2. **Frontend** shows a loading state while fetching `/api/history`.
-3. **Backend** runs `git log`, parses hashes, parents, metadata and lines changed, and returns a JSON array.
-4. **Frontend (AI)** passes commit messages to the Transformers.js WebWorker to classify them (Bug, Feature, Refactor) and updates local state.
-5. **Frontend (Graph)** renders the React Flow graph. Nodes are sized by line changes and coloured by AI classification.
-6. **User** presses "Play" on the Time-Lapse slider to watch the graph draw itself sequentially.
-7. **User** clicks a node.
-8. **Frontend** slides out a side panel showing author, date, raw message and AI category.
+Then open http://localhost:5173. The first load needs internet so the classifier model can download. Loading other repos from GitHub needs internet too. See [SETUP.md](SETUP.md) for choosing a different repo, ports and the optional Gemini setup.
 
-### MVP Definition
-
-| Priority | Scope |
-|----------|-------|
-| **P0 – Essential** | Backend parses `git log` into JSON. Frontend renders a basic React Flow graph connecting parents to children. |
-| **P1 – High impact** | Backend parses `git log --stat` for `linesAdded` / `linesDeleted`. Frontend maps this to node size. Time-Lapse playback slider implemented. |
-| **P2 – Optional** | Local Transformers.js classification to colour-code nodes. |
-
-**Non-goals:** no authentication, no database (in-memory/local only), no cloud LLM APIs, no write operations (read-only visualisation).
-
----
-
-## 3. Architecture & Shared Contracts
+## Architecture
 
 ```mermaid
-graph TD
-    subgraph Frontend - Vite/React
-        UI[React Flow UI - Agent 1]
-        Panel[Side Panel - Agent 3]
-        Slider[Time-Lapse Slider - Agent 3]
-        ML[Transformers.js WebWorker - Agent 3]
-
-        UI -->|Selected Node| Panel
-        Slider -->|Visible Node Index| UI
-        ML -->|Enriches Data| UI
+flowchart LR
+    subgraph Browser["Browser - React + Vite"]
+        App["App<br/>state, address bar, time-lapse"]
+        Graph["Graph<br/>React Flow + dagre layout"]
+        Panels["Side panel, summary,<br/>Find, README and Authors windows"]
+        Worker["Classifier Web Worker<br/>Transformers.js, runs locally"]
+        App --> Graph
+        App --> Panels
+        App <-->|"messages in, categories out"| Worker
     end
 
-    subgraph Backend - Node.js/Express
-        API[Express Router - Agent 2]
-        Parser[Git Log Parser - Agent 2]
-        Git[(Local .git repo)]
-
-        API --> Parser
-        Parser --> Git
+    subgraph Server["Server - Node + Express :3001"]
+        API["/api/history<br/>/api/readme<br/>/api/summary<br/>/api/health"]
+        Git["gitService<br/>native git commands"]
+        Cache["repoCache<br/>clones of public GitHub repos"]
+        Summary["Summary service<br/>optional, off by default<br/>call cap + cache"]
+        API --> Git
+        API --> Cache
+        API --> Summary
     end
 
-    UI -->|GET /api/history| API
+    App -->|"fetch through the Vite /api proxy"| API
+    Git --> Repo[("Default repo or cached clone")]
+    Cache -->|"git clone / fetch"| GitHub[("github.com")]
+    Summary -.->|"only when enabled"| Gemini[("Gemini API")]
+    Worker -.->|"model download, first run only"| HF[("Hugging Face")]
 ```
 
-### API Contract
-
-All agents must strictly adhere to this JSON schema. The backend serves it, the frontend consumes it, and the AI appends to it.
-
-**`GET /api/history`** — fetches the full parsed commit history.
-
-Response (`200 OK`):
-
-```json
-[
-  {
-    "id": "a1b2c3d",
-    "parents": ["f9e8d7c"],
-    "author": "Sreyas S",
-    "date": "2026-10-24T12:00:00Z",
-    "message": "Initial commit",
-    "linesAdded": 50,
-    "linesDeleted": 0,
-    "aiCategory": null
-  }
-]
-```
-
-> `aiCategory` is initialised as `null` by the backend and populated asynchronously by the frontend Transformers.js worker.
-
-### Integration Rules
-
-- **Ports:** backend on `:3001`, frontend on Vite default `:5173`.
-- **File ownership:**
-  - Agent 1: `client/src/components/Graph.jsx`, `App.jsx`
-  - Agent 2: `server/index.js`, `server/parser.js`
-  - Agent 3: `client/src/components/SidePanel.jsx`, `client/src/components/TimeLapseSlider.jsx`, `client/src/workers/aiWorker.js`
-
----
-
-## 4. Workstream Ownership
-
-| Feature | Owner | Dependencies | Acceptance Criteria |
-|---------|-------|--------------|---------------------|
-| Node.js server setup | Agent 2 | None | Runs on 3001, serves basic 200 OK health check. |
-| Git log parsing | Agent 2 | None | Executes `git log` natively, handles merge commits (multiple parents), returns shared-contract JSON. |
-| React app scaffolding | Agent 1 | None | Vite app runs, React Flow canvas fills the screen. |
-| Graph rendering | Agent 1 | Agent 2 (or mock) | JSON maps to nodes/edges. Parent-child arrows render correctly using dagre layout. |
-| Impact radius (sizing) | Agent 1 | Agent 2 | Node styling scales with `linesAdded + linesDeleted`. |
-| Local AI classification | Agent 3 | None | Transformers.js loads a lightweight zero-shot model (e.g. `Xenova/mobilebert-uncased-mnli`) and categorises text. |
-| Side panel UI | Agent 3 | Agent 1 (click event) | Clicking a node opens a polished side panel with commit metadata. |
-| Time-Lapse Slider | Agent 3 | Agent 1 | A slider UI with Play/Pause that controls the chronological rendering of nodes on the graph. |
-
----
-
-## 5. Parallel Execution Plan
-
-### Phase 1: Shared Foundation (Hours 0–1)
-- Initialise repo, create `server/` and `client/` directories.
-- **Agent 1** scaffolds Vite + React Flow with a hardcoded `mockData.json` using the shared contract.
-- **Agent 2** initialises Express and writes the empty `GET /api/history` controller.
-
-### Phase 2: Parallel Implementation (Hours 1–5)
-- **Agent 1:** auto-layout logic using dagre (top-to-bottom or left-to-right).
-- **Agent 2:** regex and `child_process` logic to parse `git log --pretty=format:"%H|%P|%an|%ad|%s" --numstat`.
-- **Agent 3:** WebWorker for Transformers.js (avoids UI freezing while the model loads), `<SidePanel />`, and `<TimeLapseSlider />` components.
-
-### Phase 3: Early Integration (Hours 5–7)
-- **Agent 1** removes `mockData.json` and fetches from `localhost:3001/api/history`.
-- **Agent 3** hooks the AI classifier into Agent 1's state, updating node colours as inferences complete, and hooks the slider state to slice the rendered nodes array.
-
-### Phase 4: Feature Completion & Polish (Hours 7–15)
-- Refine regex for weird commit messages (Agent 2).
-- Polish CSS, empty states and loading spinners (Agents 1 & 3).
-
-### Phase 5: Feature Freeze (Hour 16)
-- No new features. Bug fixes, presentation prep and testing on different repos only.
-
----
-
-## 6. Agent Prompts
-
-### Agent 1 — Frontend & Graph UX
-
-~~~text
-You are the Lead Frontend Engineer (Agent 1) for a 24-hour hackathon project named "GitStory".
-
-PRODUCT OVERVIEW:
-GitStory is a local developer tool that visualizes a Git repository's commit history as an interactive React Flow graph. The node sizes represent lines of code changed, and the node colors represent the commit intent (determined locally via AI by Agent 3).
-Target user: Developers onboarding to complex codebases.
-Differentiator: Visualizing "impact radius" and chronological history visually.
-
-YOUR ROLE & BOUNDARIES:
-You own the Vite + React frontend, specifically the Graph UI.
-You are responsible for:
-1. Setting up React Flow and `dagre` for automated directed-graph layout.
-2. Fetching data from the backend contract and mapping it to React Flow `nodes` and `edges`.
-3. Scaling node dimensions based on `linesAdded` + `linesDeleted`.
-4. Emitting an `onNodeClick` event that Agent 3 will use to open a side panel.
-
-SHARED CONTRACT (API /api/history):
-You must build against this exact JSON schema:
-[
-  {
-    "id": "a1b2c3d",
-    "parents": ["f9e8d7c"], // Array of strings. Note: can be empty (initial commit) or multiple (merge).
-    "author": "Sreyas S",
-    "date": "2026-10-24T12:00:00Z",
-    "message": "Initial commit",
-    "linesAdded": 50,
-    "linesDeleted": 0,
-    "aiCategory": null // Will be mutated later by Agent 3
-  }
-]
-
-DEPENDENCIES & PARALLEL WORK:
-- Agent 2 is building the Express backend. Until they finish, use a hardcoded `mockData.json` file containing the schema above.
-- Agent 3 is building a `<SidePanel />`, `<TimeLapseSlider />`, and a Transformers.js WebWorker. Leave a placeholder slot in your `App.jsx` layout for the SidePanel and Slider.
-
-PRIORITISED TASKS:
-1. Scaffold the basic React Flow canvas.
-2. Write a mapping function: `id` becomes node ID. `parents` array maps to edge sources/targets.
-3. Integrate `dagre` to auto-position the nodes so it looks like a Git tree (handling branches).
-4. Create a custom Node component that scales in size based on the lines changed.
-
-ACCEPTANCE CRITERIA:
-- The graph renders without overlapping nodes.
-- Multiple branches and merge commits render correctly.
-- The UI handles up to 500 nodes smoothly.
-
-CONSTRAINTS:
-- Do not build the backend logic.
-- Prioritize a working, polished demo over minor optimizations.
-- Format your response as a status report: [Completed], [Files Changed], [Next Actions], [Blockers]. Provide complete, usable React components.
-~~~
-
-### Agent 2 — Backend & Parsing
-
-~~~text
-You are the Lead Backend Engineer (Agent 2) for a 24-hour hackathon project named "GitStory".
-
-PRODUCT OVERVIEW:
-GitStory is a local developer tool that visualizes a Git repository's commit history.
-Target user: Developers onboarding to complex codebases.
-Differentiator: Replaces reading terminal output with a visual timeline.
-
-YOUR ROLE & BOUNDARIES:
-You own the Node.js Express server.
-You are responsible for:
-1. Setting up a local Express server on port 3001.
-2. Executing native Git commands against a local directory using `child_process.exec`.
-3. Parsing the raw stdout text into a clean JSON array.
-4. Exposing this via `GET /api/history`.
-
-SHARED CONTRACT (API /api/history):
-You must output this exact JSON schema:
-[
-  {
-    "id": "a1b2c3d",
-    "parents": ["f9e8d7c"], // Array of strings. Empty for initial commit. Multiple for merges.
-    "author": "Sreyas S",
-    "date": "2026-10-24T12:00:00Z",
-    "message": "Initial commit",
-    "linesAdded": 50,
-    "linesDeleted": 0,
-    "aiCategory": null // Always return null. Agent 3 will populate this on the frontend.
-  }
-]
-
-DEPENDENCIES & PARALLEL WORK:
-- Agent 1 is building the frontend based on this contract. You must not change the JSON schema without full team agreement.
-
-PRIORITISED TASKS:
-1. Initialize Express and CORS.
-2. Write a Git service that runs `git log --pretty=format:"%H|%P|%an|%ad|%s"`.
-3. Write parsing logic to split the output by newlines and pipes (`|`). Handle merge commits (where `%P` returns multiple hashes separated by spaces).
-4. (Crucial) Execute a secondary command or modify the first to include `--numstat` or `--shortstat` to reliably calculate `linesAdded` and `linesDeleted` for each commit.
-5. Merge the metadata and the stat data into the final JSON array.
-
-ACCEPTANCE CRITERIA:
-- The API returns 200 OK with valid JSON.
-- It does not crash if a commit message contains pipes, quotes, or weird characters.
-- It accurately counts lines added and deleted.
-
-CONSTRAINTS:
-- Do not build UI. Do not use external cloud APIs (Hackathon rules).
-- Keep regex and string parsing as robust as possible.
-- Format your response as a status report: [Completed], [Files Changed], [Next Actions], [Blockers]. Provide the complete Node.js controllers and parsing functions.
-~~~
-
-### Agent 3 — AI & Capability
-
-~~~text
-You are the AI & Integration Specialist (Agent 3) for a 24-hour hackathon project named "GitStory".
-
-PRODUCT OVERVIEW:
-GitStory is an interactive codebase visualizer. To win the "Best Use of AI" prize without violating the hackathon's ban on cloud LLM wrappers, we are running machine learning locally in the browser. 
-Target user: Developers onboarding to complex codebases.
-Differentiators: 
-1. Zero-shot classification of commit messages running entirely client-side.
-2. A "Time-Lapse" playback slider to animate the history of the codebase.
-
-YOUR ROLE & BOUNDARIES:
-You own the local ML pipeline, the commit details Side Panel, and the Time-Lapse Slider UI.
-You are responsible for:
-1. Implementing `Transformers.js` via a WebWorker (to prevent blocking the main UI thread).
-2. Creating a classification pipeline that tags commits as "Bugfix", "Feature", "Refactor", or "Chore".
-3. Building a `<SidePanel />` React component that slides in to display commit details when a node is clicked.
-4. Building a `<TimeLapseSlider />` React component that controls which commits are visible based on chronological order.
-
-SHARED CONTRACT (API /api/history):
-Agent 1 and Agent 2 use this schema. Your AI pipeline will mutate the `aiCategory` field on the client side.
-{
-  "id": "a1b2c3d",
-  "parents": ["f9e8d7c"],
-  "author": "Sreyas S",
-  "date": "2026-10-24T12:00:00Z",
-  "message": "Initial commit",
-  "linesAdded": 50,
-  "linesDeleted": 0,
-  "aiCategory": null // Your WebWorker must populate this.
-}
-
-DEPENDENCIES & PARALLEL WORK:
-- Agent 1 owns the React Flow canvas. 
-- You must expose a `classifyCommits(nodes)` function/hook that Agent 1 can call to enrich their state.
-- You must expose a slider component that outputs a `visibleNodeCount` or `currentDate` state, which Agent 1 will use to slice the array of nodes they render.
-- Agent 1 will pass you a `selectedNode` object to render in your `<SidePanel />`.
-
-PRIORITISED TASKS:
-1. Write `aiWorker.js` using `@xenova/transformers`. Load a lightweight zero-shot classification model (e.g., `Xenova/mobilebert-uncased-mnli`).
-2. Create a React hook `useCommitClassifier` that manages the WebWorker lifecycle.
-3. Build the `<SidePanel />` UI using Tailwind/CSS to display the commit data and AI category badge.
-4. Build the `<TimeLapseSlider />` UI with a Play/Pause button and a range input. It needs to emit the current chronological index to the parent `App.jsx` so Agent 1's graph knows how many nodes to draw.
-
-ACCEPTANCE CRITERIA:
-- The UI does not freeze while the model downloads or infers.
-- Commits are accurately classified based on their message.
-- The Side Panel looks polished and handles null states gracefully.
-- The Time-Lapse Slider smoothly increments its value when "Play" is clicked.
-
-CONSTRAINTS:
-- Do NOT use OpenAI, Claude, or any external API. All ML must be client-side via Transformers.js.
-- Format your response as a status report: [Completed], [Files Changed], [Next Actions], [Blockers]. Provide the WebWorker code, the hook, the SidePanel, and the Slider component.
-~~~
-
----
-
-## 7. Master Timeline
-
-### Saturday
-
-| Time | Activity |
-|------|----------|
-| 12:00–13:00 | Kickoff. Initialise repo. Paste prompts into the respective agents. |
-| 13:00–16:00 | Parallel implementation. Agent 1 builds mock UI, Agent 2 builds parser, Agent 3 builds WebWorker. |
-| 16:00–17:00 | **Integration Gate 1.** Connect frontend to real backend, drop mock data, ensure basic graph renders from a real repo. If blocked, fall back to flat history without dagre branching. |
-| 17:00–20:00 | Feature addition: impact radius sizing (Agent 1), Transformers.js hookup (Agent 3). |
-| 20:00–21:00 | Dinner / break. |
-| 21:00–00:00 | UI polish: side panel styling, animation setup. |
-
-### Sunday
-
-| Time | Activity |
-|------|----------|
-| 00:00–01:00 | **Integration Gate 2.** End-to-end test on a large repo (e.g. React or Vue). Fix critical performance bugs. |
-| 01:00–07:00 | Rest / sleep. Crucial for presentation coherence. |
-| 07:00–09:00 | **Feature freeze.** Fix remaining bugs, add empty states and loading spinners. No new logic. |
-| 09:00–10:30 | Prepare demo repo: a dedicated local Git repo with narrative commits that show off graph sizes and AI classifications. |
-| 10:30–11:30 | Presentation rehearsal. Script the 60 seconds exactly. |
-| 11:30–12:00 | Buffer & submission. |
-
----
-
-## 8. Testing & Launch Checklist
-
-- [ ] **Startup test:** `npm start` in `server` and `npm run dev` in `client` work without environment variable crashes.
-- [ ] **Data validation:** a repo with complex merge commits doesn't break the parser or crash the graph layout.
-- [ ] **Performance:** a repo with 500+ commits renders in under 3 seconds.
-- [ ] **AI fallback:** if the browser can't download the Transformers.js model (strict local WiFi), the app ignores `aiCategory` and renders the graph without crashing.
-- [ ] **Golden path rehearsal:** open app → graph auto-draws → AI badges pop in asynchronously → click giant node → side panel opens showing "Refactor".
-- [ ] **Submission:** README has screenshots, setup instructions and architecture explanation.
-
----
-
-## 9. Risk Register
-
-| Risk | Probability | Impact | Prevention / Fallback | Owner |
-|------|-------------|--------|-----------------------|-------|
-| Git string parsing fails on weird commit messages (quotes, pipes). | High | High | **Prevent:** use an obscure delimiter in `--pretty=format` (e.g. `^%^`). **Fallback:** skip malformed commits in the map function. | Agent 2 |
-| Transformers.js model too large, causing long load times on hackathon WiFi. | Medium | High | **Prevent:** use a quantised, lightweight model (e.g. `Xenova/distilbert-base-uncased`). **Fallback:** disable AI; rely on impact radius for the USP. | Agent 3 |
-| React Flow / dagre layout overlaps, creating an unreadable web. | Medium | Medium | **Prevent:** stick to left-to-right (LR) dagre layout. **Fallback:** drop auto-layout and render a simple vertical timeline. | Agent 1 |
-
----
-
-## 10. Operating Instructions
-
-### Setup & Execution
-
-1. **Create the repository:** a single Git repo with `client/` and `server/` folders.
-2. **Launch the agents:**
-   - Claude Pro (web): paste the Agent 2 prompt (best at string parsing and algorithms).
-   - Claude Code (CLI) or a second Claude tab: paste the Agent 1 prompt (best for React UI).
-   - Gemini: paste the Agent 3 prompt (good at researching esoteric libraries like Transformers.js).
-
-### The Feedback Loop
-
-Don't let agents talk endlessly. Ask for the code, copy it to your editor, run it, and immediately feed the exact terminal output or browser error back to the specific agent.
-
-### Integration Rule
-
-When an agent finishes a component, don't ask them how to integrate it with another agent's code. You are the architect: take Agent 2's API URL and pass it to Agent 1's fetch function; take Agent 3's `useCommitClassifier` hook and import it into Agent 1's `App.jsx`.
-
-### Conflict Resolution
-
-If Agent 1 says "I need the backend to send data in a nested object," answer: *"No, the shared contract is fixed as a flat array. Adjust your frontend to match."* Maintain absolute discipline over the JSON schema.
+- **The server reads, the browser draws.** The server runs native `git` commands and returns a flat JSON array of commits (id, parents, author, date, message, lines added and deleted). The browser turns that into nodes and edges, lays them out with dagre and draws them with React Flow.
+- **Classification never touches the server.** The Web Worker gets the commit messages from the page and sends categories back.
+- **Picked repos are cached.** Public GitHub repos are cloned once into `server/.repo-cache` and updated on later loads. Only `https://github.com/owner/repo` addresses are accepted.
+- **Built with:** React 19, Vite, React Flow (`@xyflow/react`), dagre, Tailwind CSS 4, Transformers.js, Node.js and Express 5. Gemini is used only for the optional summaries.
+
+| Endpoint | What it does |
+|---|---|
+| `GET /api/history?repo=&limit=` | Commits from every branch, newest first |
+| `GET /api/readme?repo=` | The repo's README text |
+| `POST /api/summary` | Gemini summary of one commit (503 while AI is off) |
+| `GET /api/health` | Server status and whether AI is on |
+
+The full request and response details are in [SETUP.md](SETUP.md).
+
+## Challenges
+
+- **Parsing real git output.** Commit messages can contain pipes, quotes, emoji and anything else a simple parser would split on. The server separates fields with a control character instead, and the parser has tests for these cases, merge commits, binary files and Windows line endings.
+- **Making size mean something without hiding the text.** Scaling a node by lines changed worked until the smallest commits became too short for their own message. Node height now comes from the text size, so even a one-line commit stays readable.
+- **Three people building in parallel.** The repo picker and the Find box both wanted the same spot on the screen. We merged them into one shared toolbar and kept both features.
+- **Honest limits for a small local model.** Judging intent from a short message is hard, so low-confidence commits are left Unclassified instead of being given a confident wrong colour.
+- **Optional cloud AI in a public repo.** The Gemini key never leaves the server and is git-ignored, calls are capped, results are cached, and everything works with the feature switched off.
+- **Big histories.** The graph shows the newest 500 commits, draws only what is on screen, and says clearly when it has trimmed a repo.
+
+## What's next
+
+- **Smarter classification.** Use conventional-commit prefixes such as `fix:` and `feat:` first, and look at which files changed (tests, docs, config) as well as the message.
+- **Merge duplicate authors.** The Authors window groups by name, so someone who commits under two names appears twice. Matching on email or a `.mailmap` file would fix that.
+- **Filters.** Narrow the graph by category, author or date range, and label branches and tags on the nodes.
+- **Dig into a commit.** Show the diff in the side panel and link each node to its page on GitHub.
+- **Bigger repos.** Load history in pages instead of the newest 500, and fold long runs of simple commits together.
+- **More sources.** Support private repos with a token, other hosts such as GitLab, and a picker for local folders.
+- **Share the story.** Export the time-lapse as a GIF or video.
+- **Nicer README window.** Render the repo's README as formatted Markdown instead of plain text.
+
+## Team
+
+- [Khizarali007](https://github.com/Khizarali007)
+- [Modblitz](https://github.com/Modblitz)
+- [sreyas-sreekumar](https://github.com/sreyas-sreekumar)
+
+## Credits
+
+GitStory is a fan-made, non-commercial tribute to the Windows XP look. Windows XP is a trademark of Microsoft, and the wallpaper, icons and sounds that recreate its look belong to their respective owners. This project is not affiliated with or endorsed by Microsoft.

@@ -1032,3 +1032,104 @@ body {
 .xp-readme-text:focus {
   outline: none;
 }
+
+/* ---- Authors window ---- */
+
+/* A little below and right of the README window, like cascaded windows. */
+.xp-authors-window {
+  position: fixed;
+  top: calc(50% + 28px);
+  left: calc(50% + 28px);
+  z-index: 40;
+  width: min(520px, 92vw);
+  /* As tall as the list needs, up to a limit; then the list scrolls. */
+  height: auto;
+  max-height: min(420px, 70vh);
+  transform: translate(-50%, -50%);
+  outline: none;
+}
+
+.xp-authors-body {
+  flex: 1;
+  min-height: 0;
+  margin: 3px 3px 0;
+  overflow: auto;
+  border: 1px solid #7f9db9;
+  background: #fff;
+}
+
+.xp-authors-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+/* List-view column headers. */
+.xp-authors-table th {
+  position: sticky;
+  top: 0;
+  padding: 3px 8px;
+  border: 1px solid;
+  border-color: #fff #aca899 #aca899 #fff;
+  background: linear-gradient(to bottom, #fefefe, #ece9d8);
+  font-weight: normal;
+  text-align: left;
+}
+
+.xp-authors-table td {
+  padding: 4px 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.xp-authors-name {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.xp-authors-table .xp-authors-num {
+  width: 70px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.xp-authors-share {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Green blocks like the XP progress bar. */
+.xp-authors-bar {
+  flex: 1;
+  height: 12px;
+  padding: 1px;
+  border: 1px solid #7f9db9;
+  background: #fff;
+}
+
+.xp-authors-bar > span {
+  display: block;
+  height: 100%;
+  background: repeating-linear-gradient(90deg, #2fb62f 0 6px, transparent 6px 8px);
+}
+
+.xp-authors-percent {
+  width: 34px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.xp-authors-empty {
+  margin: 0;
+  padding: 12px;
+}
+
+.xp-authors-status {
+  flex-shrink: 0;
+  margin: 3px;
+  padding: 2px 6px;
+  border: 1px solid #aca899;
+  border-color: #aca899 #fff #fff #aca899;
+}

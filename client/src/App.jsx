@@ -5,14 +5,19 @@ import SidePanel from './components/SidePanel.jsx'
 import SummaryPanel from './components/SummaryPanel.jsx'
 import StatusDialog from './components/StatusDialog.jsx'
 import TimeLapseSlider from './components/TimeLapseSlider.jsx'
+import RepoPicker from './components/RepoPicker.jsx'
 import useAiConfig from './hooks/useAiConfig.js'
 import useCommitHistory from './hooks/useCommitHistory.js'
 import useStartupSound from './hooks/useStartupSound.js'
 import useCommitClassifier from './hooks/useCommitClassifier.js'
+
 // Root component that composes the graph, side panel and time-lapse slider.
 export default function App() {
+  // null = the server's default repo; otherwise a GitHub URL typed into the picker.
+  const [repoUrl, setRepoUrl] = useState(null)
+
   // The hook also returns setCommits for the classifier to write aiCategory back.
-  const { commits, status, error, usingSample, total, dropped, retry } = useCommitHistory()
+  const { commits, status, error, usingSample, total, dropped, retry } = useCommitHistory(repoUrl)
   const { classifyCommits, categories, status: aiStatus } = useCommitClassifier()
   useStartupSound()
   const aiConfig = useAiConfig()
@@ -23,6 +28,14 @@ export default function App() {
   const [followId, setFollowId] = useState(null)
   const [playToken, setPlayToken] = useState(0)
   const handlePlay = useCallback(() => setPlayToken((n) => n + 1), [])
+
+  // Changing repo resets everything that pointed at the old graph.
+  function handleRepoSubmit(url) {
+    setRepoUrl(url || null) // empty box = back to the default repo
+    setSelectedId(null)
+    setVisibleCount(Infinity)
+    setFollowId(null)
+  }
 
   // Oldest first. git log lists newest first, so equal dates keep the
   // later array index (older commit) first.
@@ -48,9 +61,13 @@ export default function App() {
     },
     [sortedCommits],
   )
+
+  // Merge the classifier's results into the commits before anything reads them.
   const classifiedCommits = useMemo(
-    () => commits.map( (c) => ({...c,aiCategory:categories[c.id]?? c.aiCategory})),
-    [commits,categories],)
+    () => commits.map((c) => ({ ...c, aiCategory: categories[c.id] ?? c.aiCategory })),
+    [commits, categories],
+  )
+
   // Looked up by id so the panel picks up aiCategory once it's classified.
   // A commit hidden by the time-lapse closes the panel.
   const selectedCommit = useMemo(
@@ -66,19 +83,24 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
-  useEffect( () => {
-    if(aiStatus==='ready' && commits.length>0)
-      {
-        classifyCommits(commits)
-      }
-    },[aiStatus,commits,classifyCommits])
+  useEffect(() => {
+    if (aiStatus === 'ready' && commits.length > 0) {
+      classifyCommits(commits)
+    }
+  }, [aiStatus, commits, classifyCommits])
 
-
-
+  // Rendered in every branch below so you can always enter a new repo,
+  // including while loading and after an error.
+  const picker = (
+    <div className="fixed left-1/2 top-2 z-20 -translate-x-1/2">
+      <RepoPicker value={repoUrl ?? ''} onSubmit={handleRepoSubmit} />
+    </div>
+  )
 
   if (status === 'loading') {
     return (
       <div className="h-screen w-screen xp-desktop">
+        {picker}
         <StatusDialog title="GitStory" icon="loading">
           Reading git history…
         </StatusDialog>
@@ -89,6 +111,7 @@ export default function App() {
   if (status === 'error') {
     return (
       <div className="h-screen w-screen xp-desktop">
+        {picker}
         <StatusDialog
           title="GitStory - Error"
           icon="error"
@@ -104,6 +127,7 @@ export default function App() {
   if (commits.length === 0) {
     return (
       <div className="h-screen w-screen xp-desktop">
+        {picker}
         <StatusDialog
           title="GitStory"
           icon="info"
@@ -121,6 +145,7 @@ export default function App() {
   return (
     <ReactFlowProvider>
       <div className="relative flex h-screen w-screen overflow-hidden xp-desktop">
+        {picker}
         <main className="relative min-w-0 flex-1">
           <Graph
             commits={classifiedCommits}

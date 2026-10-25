@@ -3,7 +3,7 @@ import express from 'express'
 import cors from 'cors'
 import { getHistory, GitError } from './gitService.js'
 import { AiError } from './ai/gemini.js'
-
+import { getRepoPath } from './repoCache.js'
 const MAX_LIMIT = 5000
 
 const AI_OFF = {
@@ -11,7 +11,14 @@ const AI_OFF = {
   details: 'Set GEMINI_ENABLED=true in server/.env and restart the server',
 }
 
-function sendError(res, err) {
+function sendError(res, err) 
+{
+
+  if(err.status===400)
+  {
+    return res.status(400).json({error:err.message,details:''})
+  }
+
   if (err instanceof AiError || err instanceof GitError) {
     return res.status(err.status).json({ error: err.message, details: err.details ?? '' })
   }
@@ -41,9 +48,18 @@ export function createApp({ repoPath, ai }) {
       limit = Math.min(limit, MAX_LIMIT)
     }
 
-    try {
-      res.json(await getHistory(repoPath, { limit }))
-    } catch (err) {
+    try 
+    {
+      const repoURL = req.query.repo;
+      let dir = repoPath;
+      if(typeof repoURL==='string' && repoURL.trim()!== '')
+      {
+        dir = await getRepoPath(repoURL);
+      }
+      res.json(await getHistory(dir, { limit }))
+    } 
+    catch (err) 
+    {
       sendError(res, err)
     }
   })
@@ -52,7 +68,13 @@ export function createApp({ repoPath, ai }) {
     if (!ai.enabled) return res.status(503).json(AI_OFF)
 
     try {
-      res.json({ summary: await ai.summarize(req.body?.id, repoPath) })
+      // Same repo as the history request, so picked repos work too.
+      const repoURL = req.body?.repo
+      let dir = repoPath
+      if (typeof repoURL === 'string' && repoURL.trim() !== '') {
+        dir = await getRepoPath(repoURL)
+      }
+      res.json({ summary: await ai.summarize(req.body?.id, dir) })
     } catch (err) {
       sendError(res, err)
     }

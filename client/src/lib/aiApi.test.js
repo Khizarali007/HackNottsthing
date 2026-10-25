@@ -45,12 +45,15 @@ test('fetchAiConfig falls back to disabled on any failure', async () => {
   }
 })
 
-test('fetchSummary posts the id and returns the summary', async () => {
+test('fetchSummary posts the id and repo and returns the summary', async () => {
   const calls = stubFetch(() => json(200, { summary: 'Adds the parser.' }))
   assert.equal(await fetchSummary(ID), 'Adds the parser.')
   assert.equal(calls[0].url, '/api/summary')
   assert.equal(calls[0].options.method, 'POST')
-  assert.deepEqual(JSON.parse(calls[0].options.body), { id: ID })
+  assert.deepEqual(JSON.parse(calls[0].options.body), { id: ID, repo: null })
+
+  await fetchSummary(ID, 'https://github.com/owner/repo')
+  assert.deepEqual(JSON.parse(calls[1].options.body), { id: ID, repo: 'https://github.com/owner/repo' })
 })
 
 test('fetchSummary turns error responses into AiRequestError', async () => {

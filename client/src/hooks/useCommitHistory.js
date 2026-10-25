@@ -11,10 +11,12 @@ class ServerError extends Error {}
 // Thrown for anything that means the backend isn't really there.
 class OfflineError extends Error {}
 
-async function loadHistory(signal) {
+
+async function loadHistory(signal,repoUrl) {
   let res
+  const url = repoUrl ? `${HISTORY_URL}?repo=${encodeURIComponent(repoUrl)}` : HISTORY_URL;
   try {
-    res = await fetch(HISTORY_URL, { signal })
+    res = await fetch(url, { signal })
   } catch (err) {
     if (err.name === 'AbortError') throw err
     throw new OfflineError(err.message)
@@ -37,7 +39,7 @@ async function loadHistory(signal) {
 // Loads commits from the backend. If the backend is offline, falls back to
 // the bundled sample data so the UI still demos.
 // status: 'loading' | 'ready' | 'error'
-export default function useCommitHistory() {
+export default function useCommitHistory(repoUrl) {
   const [commits, setCommits] = useState([])
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState(null)
@@ -48,9 +50,11 @@ export default function useCommitHistory() {
   const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
+    setStatus('loading');
+    setError(null);
     const controller = new AbortController()
 
-    loadHistory(controller.signal)
+    loadHistory(controller.signal,repoUrl)
       .then((data) => {
         const result = normalizeCommits(data)
         setCommits(result.commits)
@@ -74,7 +78,7 @@ export default function useCommitHistory() {
       })
 
     return () => controller.abort()
-  }, [attempt])
+  }, [attempt,repoUrl])
 
   const retry = useCallback(() => {
     setStatus('loading')

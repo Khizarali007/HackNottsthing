@@ -26,11 +26,12 @@ export async function fetchAiConfig(signal) {
 }
 
 // Returns the summary text, or throws AiRequestError for an error response.
-export async function fetchSummary(id, signal) {
+// repo is the picked GitHub URL, or null for the server's default repo.
+export async function fetchSummary(id, repo, signal) {
   const res = await fetch('/api/summary', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id }),
+    body: JSON.stringify({ id, repo: repo ?? null }),
     signal,
   })
   const body = await res.json().catch(() => null)

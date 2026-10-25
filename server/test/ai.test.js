@@ -247,6 +247,16 @@ describe('/api/summary', () => {
     assert.equal(client.prompts.length, 1)
   })
 
+  test('a repo that is not a GitHub URL gives 400 without calling the client', async () => {
+    const client = fakeClient()
+    await withApp(enabledAi(client, { name: 'badrepo' }), async (base) => {
+      const res = await summary(base, { id: ids.normal, repo: 'https://example.com/a/b' })
+      assert.equal(res.status, 400)
+      assert.equal(res.body.error, 'Only https://github.com/owner/repo URLs are supported.')
+    })
+    assert.equal(client.prompts.length, 0)
+  })
+
   test('/api/history is unchanged and still has aiCategory null', async () => {
     await withApp(enabledAi(fakeClient(), { name: 'history' }), async (base) => {
       const history = await (await fetch(`${base}/api/history`)).json()

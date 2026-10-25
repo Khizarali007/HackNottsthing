@@ -221,7 +221,7 @@ export default function Graph({ commits, selectedId, onSelect, visibleIds, follo
         <Panel position="top-left">
           <Legend />
         </Panel>
-        <Panel position="top-right">
+        <Panel position="top-right" className="xp-find-panel">
           <FindBar
             query={query}
             onQueryChange={changeQuery}

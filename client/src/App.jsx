@@ -5,6 +5,7 @@ import SidePanel from './components/SidePanel.jsx'
 import SummaryPanel from './components/SummaryPanel.jsx'
 import StatusDialog from './components/StatusDialog.jsx'
 import TimeLapseSlider from './components/TimeLapseSlider.jsx'
+import RepoPicker from './components/RepoPicker.jsx'
 import useAiConfig from './hooks/useAiConfig.js'
 import useCommitHistory from './hooks/useCommitHistory.js'
 import useStartupSound from './hooks/useStartupSound.js'
@@ -18,7 +19,9 @@ const skipBoot = shouldSkipBoot(window.location.search)
 // Wraps the app with the start-up sequence. The app stays mounted behind it
 // so the history loads and the graph lays out while the splash is up.
 export default function App() {
-  const history = useCommitHistory()
+  // null = the server's default repo; otherwise a GitHub URL typed into the picker.
+  const [repoUrl, setRepoUrl] = useState(null)
+  const history = useCommitHistory(repoUrl)
   const [booting, setBooting] = useState(!skipBoot)
   const finishBoot = useCallback(() => setBooting(false), [])
   useStartupSound({ enabled: skipBoot })
@@ -26,7 +29,7 @@ export default function App() {
   return (
     <>
       <div inert={booting}>
-        <AppContent history={history} />
+        <AppContent history={history} repoUrl={repoUrl} onRepoChange={setRepoUrl} />
       </div>
       {booting && <BootScreen ready={history.status !== 'loading'} onDone={finishBoot} />}
     </>
@@ -34,7 +37,7 @@ export default function App() {
 }
 
 // Composes the graph, side panel and time-lapse slider.
-function AppContent({ history }) {
+function AppContent({ history, repoUrl, onRepoChange }) {
   // The hook also returns setCommits for the classifier to write aiCategory back.
   const { commits, status, error, usingSample, total, dropped, retry } = history
   const { classifyCommits, categories, status: aiStatus } = useCommitClassifier()
@@ -46,6 +49,14 @@ function AppContent({ history }) {
   const [followId, setFollowId] = useState(null)
   const [playToken, setPlayToken] = useState(0)
   const handlePlay = useCallback(() => setPlayToken((n) => n + 1), [])
+
+  // Changing repo resets everything that pointed at the old graph.
+  function handleRepoSubmit(url) {
+    onRepoChange(url || null) // empty box = back to the default repo
+    setSelectedId(null)
+    setVisibleCount(Infinity)
+    setFollowId(null)
+  }
 
   // Oldest first. git log lists newest first, so equal dates keep the
   // later array index (older commit) first.
@@ -71,9 +82,13 @@ function AppContent({ history }) {
     },
     [sortedCommits],
   )
+
+  // Merge the classifier's results into the commits before anything reads them.
   const classifiedCommits = useMemo(
-    () => commits.map( (c) => ({...c,aiCategory:categories[c.id]?? c.aiCategory})),
-    [commits,categories],)
+    () => commits.map((c) => ({ ...c, aiCategory: categories[c.id] ?? c.aiCategory })),
+    [commits, categories],
+  )
+
   // Looked up by id so the panel picks up aiCategory once it's classified.
   // A commit hidden by the time-lapse closes the panel.
   const selectedCommit = useMemo(
@@ -89,19 +104,24 @@ function AppContent({ history }) {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
-  useEffect( () => {
-    if(aiStatus==='ready' && commits.length>0)
-      {
-        classifyCommits(commits)
-      }
-    },[aiStatus,commits,classifyCommits])
+  useEffect(() => {
+    if (aiStatus === 'ready' && commits.length > 0) {
+      classifyCommits(commits)
+    }
+  }, [aiStatus, commits, classifyCommits])
 
-
-
+  // Rendered in every branch below so you can always enter a new repo,
+  // including while loading and after an error.
+  const picker = (
+    <div className="fixed left-1/2 top-2 z-20 -translate-x-1/2">
+      <RepoPicker value={repoUrl ?? ''} onSubmit={handleRepoSubmit} />
+    </div>
+  )
 
   if (status === 'loading') {
     return (
       <div className="h-screen w-screen xp-desktop">
+        {picker}
         <StatusDialog title="GitStory" icon="loading">
           Reading git history…
         </StatusDialog>
@@ -112,6 +132,7 @@ function AppContent({ history }) {
   if (status === 'error') {
     return (
       <div className="h-screen w-screen xp-desktop">
+        {picker}
         <StatusDialog
           title="GitStory - Error"
           icon="error"
@@ -127,6 +148,7 @@ function AppContent({ history }) {
   if (commits.length === 0) {
     return (
       <div className="h-screen w-screen xp-desktop">
+        {picker}
         <StatusDialog
           title="GitStory"
           icon="info"
@@ -144,6 +166,7 @@ function AppContent({ history }) {
   return (
     <ReactFlowProvider>
       <div className="relative flex h-screen w-screen overflow-hidden xp-desktop">
+        {picker}
         <main className="relative min-w-0 flex-1">
           <Graph
             commits={classifiedCommits}
@@ -167,7 +190,7 @@ function AppContent({ history }) {
         {selectedCommit && (
           <aside className="flex h-full w-80 shrink-0 flex-col gap-3 p-3 pb-13">
             <SidePanel commit={selectedCommit} onClose={() => setSelectedId(null)} />
-            <SummaryPanel key={selectedCommit.id} commit={selectedCommit} aiEnabled={aiEnabled} />
+            <SummaryPanel key={selectedCommit.id} commit={selectedCommit} aiEnabled={aiEnabled} repoUrl={repoUrl} />
           </aside>
         )}
 

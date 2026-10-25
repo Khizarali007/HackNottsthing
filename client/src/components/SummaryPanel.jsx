@@ -27,7 +27,7 @@ function wait(ms, signal) {
 // Plain-English summary of the selected commit, from the server when AI is
 // on, otherwise built from the commit's own fields.
 // App remounts this per commit (key), so state resets on a new selection.
-export default function SummaryPanel({ commit, aiEnabled = false }) {
+export default function SummaryPanel({ commit, aiEnabled = false, repoUrl = null }) {
   // 'idle' | 'loading' | 'done' | 'error'
   const [phase, setPhase] = useState('idle')
   const [result, setResult] = useState(null)
@@ -63,7 +63,7 @@ export default function SummaryPanel({ commit, aiEnabled = false }) {
     // The request runs during the wait, so a real summary is usually ready
     // by the time the 21 seconds are up. With AI off the server isn't called.
     const request = aiEnabled
-      ? fetchSummary(commit.id, controller.signal).then(
+      ? fetchSummary(commit.id, repoUrl, controller.signal).then(
           (text) => ({ text, caption: CAPTIONS.ai }),
           (err) => ({ text: basicSummary(commit), caption: CAPTIONS.failed, reason: err?.message, failed: true }),
         )

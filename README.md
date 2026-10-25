@@ -1,22 +1,24 @@
 # GitStory
 
-> Turn any public GitHub repo's commit history into an explorable Windows XP-style graph: size shows how much changed, colour shows what kind of change it was, and a time-lapse replays how the project grew.
+> Turns any public GitHub repo's commit history into an explorable Windows XP-style graph: size shows how much changed, colour shows what kind of change it was, and a time-lapse replays how the project grew.
 
 A normal `git log` is a long wall of text. GitStory draws the same history as a map you can pan, zoom, search and play back, so you can see where the big changes happened, who made them and what kind of work each commit was, without reading a single diff.
 
 ## Features
 
-- **Impact-sized nodes.** Each commit is a window whose size follows the number of lines it added and deleted. Big refactors and code dumps are physically big, one-line fixes are small. A legend explains the scale.
-- **Time-lapse playback.** The XP taskbar at the bottom has a Play button and a slider. Press Play and the graph draws itself commit by commit (a full replay takes about a minute) while the camera follows the newest commit. Drag the slider to scrub to any point.
-- **Local commit classification.** Every commit is tagged Feature, Bugfix, Refactor or Chore and coloured to match. This runs in your browser, with no account or API key. See [How the AI works](#how-the-ai-works).
-- **Load any public GitHub repo.** Type `https://github.com/owner/repo` into the address bar and press Go. Leave it blank to see this project's own history.
-- **Find.** A Ctrl+F-style box beside the address bar. It matches commit messages, author names and hashes, highlights the matches, dims the rest and steps through them ("3 of 12") with Enter.
-- **Commit details.** Click a node to open a side panel with the full message, hash, author, date, lines added and removed, category and parent commits (merges show every parent).
-- **Commit summaries.** A Generate summary button describes the selected commit in plain English. See [How the AI works](#how-the-ai-works).
-- **README window.** The icon in the top right opens the repo's README in a Notepad-style window (plain text, and blank if the repo has none).
-- **Authors window.** The icon below it lists every author in the repo with their number of commits and share of the history.
-- **Windows XP everything.** An XP boot and welcome screen with the startup sound, plus XP windows, title bars, buttons and taskbar throughout. Open `http://localhost:5173/?boot=off` to skip the boot screen.
-- **Works on real repos.** Merge commits and every branch are included. Very large repos show the newest 500 commits (the app says so), only visible nodes are drawn, and a minimap and zoom controls help you get around. If the backend can't be reached, the app falls back to sample data and says so.
+The entire experience is wrapped in a nostalgic Windows XP interface, complete with the classic boot screen, startup sound, and retro windows, buttons, and taskbar.
+
+To get started, you can load any public GitHub repository just by pasting its URL into the address bar. If you leave it blank and hit Go, it defaults to showing you this project's own history. Once a repo loads, you'll see the commits represented as windows. Their physical size actually reflects their impact—massive code dumps or major refactors take up a ton of space, while quick one-line fixes are tiny. There's a legend included so you always know the scale.
+
+It handles real-world repos beautifully, mapping out every branch and merge commit (with merges clearly showing every parent). For extremely large projects, it automatically caps at the newest 500 commits and lets you know. It keeps performance smooth by only rendering the nodes currently visible on screen, and gives you a minimap and zoom controls to navigate the canvas. If the backend ever drops out, it gracefully falls back to sample data and alerts you so you aren't left guessing.
+
+Down in the XP taskbar, there's a time-lapse player. Hit play, and the graph physically builds itself commit by commit over about a minute while the camera tracks the newest additions. You can also grab the slider to scrub back and forth through time at your own pace.
+
+If you're hunting for something specific, a Ctrl+F style search box next to the address bar lets you dig through commit messages, author names, and hashes. It highlights your matches, dims everything else, and lets you step through them with the Enter key. Clicking on any commit node slides out a detailed panel containing the full message, hash, author, date, lines added and removed, its category, and parent commits.
+
+There is also a local AI built right into the browser that categorizes everything without needing an account or API key. It automatically tags and color-codes every commit as a Feature, Bugfix, Refactor, or Chore. In the details panel, you can also hit the "Generate summary" button to get a plain-English explanation of what a specific commit actually did. (Check out the "How the AI works" section for more details on both of these).
+
+Finally, a couple of desktop icons in the top right round out the workspace. One opens the repo's README in a classic Notepad-style plain text window (which stays blank if the repo doesn't have one). The icon right below it pulls up an Authors window, giving you a full breakdown of everyone who contributed, how many commits they made, and their overall slice of the project's history.
 
 ## How the AI works
 

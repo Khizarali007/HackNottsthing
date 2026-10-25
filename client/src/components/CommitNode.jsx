@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Handle, NodeToolbar, Position } from '@xyflow/react'
-import { MIN_WIDTH } from '../lib/layout.js'
+import { MIN_WIDTH, textScale } from '../lib/layout.js'
 import { categoryStyle } from '../lib/categories.js'
 import { shortId } from '../lib/format.js'
 
@@ -10,7 +10,7 @@ export default function CommitNode({ data, selected, width }) {
   const { commit } = data
   const [hovered, setHovered] = useState(false)
   // Text grows with the window (dampened) so big commits read as big, not empty.
-  const scale = Math.sqrt((width ?? MIN_WIDTH) / MIN_WIDTH)
+  const scale = textScale(width ?? MIN_WIDTH)
   const message = commit.message?.trim() || '(no message)'
 
   return (

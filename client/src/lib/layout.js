@@ -3,6 +3,14 @@ import dagre from '@dagrejs/dagre'
 export const MIN_WIDTH = 180
 const MAX_WIDTH = 560
 const ASPECT = 0.5
+// Text inside a node grows with its width (dampened), see CommitNode.
+export function textScale(width) {
+  return Math.sqrt(width / MIN_WIDTH)
+}
+// Height the contents need: borders and padding (fixed) plus the title bar,
+// author row, two message lines and the stats row, which all scale with the text.
+const CONTENT_FIXED_PX = 40
+const CONTENT_PER_SCALE_PX = 80
 // Lines changed at which a node reaches MAX_WIDTH. Most commits are under a
 // few hundred lines, so a lower cap spreads them out; anything bigger
 // (lockfiles, mass refactors) just pins at the max.
@@ -14,7 +22,9 @@ export function nodeSize(commit) {
   const impact = commit.linesAdded + commit.linesDeleted
   const t = Math.min(Math.sqrt(impact / MAX_IMPACT), 1)
   const width = Math.round(MIN_WIDTH + (MAX_WIDTH - MIN_WIDTH) * t)
-  return { width, height: Math.round(width * ASPECT) }
+  // Small windows are too short for their text at the plain aspect ratio.
+  const minHeight = Math.ceil(CONTENT_FIXED_PX + CONTENT_PER_SCALE_PX * textScale(width))
+  return { width, height: Math.max(Math.round(width * ASPECT), minHeight) }
 }
 
 // Maps commits to React Flow nodes and parent -> child edges.

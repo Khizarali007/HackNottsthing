@@ -24,7 +24,7 @@ export default function CommitNode({ data, selected, width }) {
       </NodeToolbar>
 
       <div
-        className={`xp-window xp-node ${selected ? 'xp-window--active' : ''}`}
+        className={`xp-window xp-node ${selected ? 'xp-window--active' : ''} ${data.search ? `xp-search--${data.search}` : ''}`}
         style={{
           '--xp-scale': scale,
           '--xp-title-filter': categoryStyle(commit.aiCategory).filter,

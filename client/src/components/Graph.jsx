@@ -3,8 +3,10 @@ import { ReactFlow, Controls, MiniMap, Panel, useReactFlow } from '@xyflow/react
 import '@xyflow/react/dist/style.css'
 import CommitNode from './CommitNode.jsx'
 import Legend from './Legend.jsx'
+import FindBar from './FindBar.jsx'
 import { commitsToGraph, layoutGraph, nodeSize } from '../lib/layout.js'
 import { categoryStyle } from '../lib/categories.js'
+import { findMatches, stepIndex } from '../lib/searchCommits.js'
 
 // Zoom where commit windows are readable.
 const READABLE_ZOOM = 0.6
@@ -14,6 +16,9 @@ const FIT_MAX_COMMITS = 12
 const MIN_PLAY_ZOOM = 0.45
 const FIT_OPTIONS = { padding: 0.1 }
 const PAN_MS = 300
+// Wait this long after the last key before panning to the first match.
+const SEARCH_PAN_DELAY_MS = 250
+const SEARCH_COLOR = '#ff9a00'
 
 // Defined at module scope so React Flow doesn't see a new object each render.
 const nodeTypes = { commit: CommitNode }
@@ -60,6 +65,13 @@ export default function Graph({ commits, selectedId, onSelect, visibleIds, follo
   const playZoomUntilRef = useRef(0)
   const latestRef = useRef({ followId: null, layout: null })
 
+  const [query, setQuery] = useState('')
+  // Current match by id, with its index so it can be clamped if the
+  // time-lapse hides it.
+  const [current, setCurrent] = useState({ id: null, index: 0 })
+  const searchTimerRef = useRef(null)
+  const currentMatchRef = useRef(null)
+
   const signature = useMemo(() => layoutSignature(commits), [commits])
 
   // Layout runs on every commit, so the time-lapse only toggles visibility
@@ -74,19 +86,32 @@ export default function Graph({ commits, selectedId, onSelect, visibleIds, follo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signature])
 
-  // Latest commit data, selection and visibility go on top of the fixed positions.
+  const searchActive = query.trim() !== ''
+  const matches = useMemo(() => findMatches(commits, query, visibleIds), [commits, query, visibleIds])
+  const matchSet = useMemo(() => new Set(matches), [matches])
+  let matchIndex = matches.indexOf(current.id)
+  if (matchIndex === -1 && matches.length > 0) matchIndex = Math.min(current.index, matches.length - 1)
+  const currentMatchId = matches[matchIndex] ?? null
+
+  // Latest commit data, selection, visibility and search state go on top of
+  // the fixed positions.
   const displayNodes = useMemo(() => {
     const byId = new Map(commits.map((c) => [c.id, c]))
+    const searchState = (id) => {
+      if (!searchActive) return undefined
+      if (id === currentMatchId) return 'current'
+      return matchSet.has(id) ? 'match' : 'dim'
+    }
     return layout.nodes.map((node) => {
       const commit = byId.get(node.id) ?? node.data.commit
       return {
         ...node,
-        data: { commit },
+        data: { commit, search: searchState(node.id) },
         selected: node.id === selectedId,
         hidden: !visibleIds.has(node.id),
       }
     })
-  }, [layout, commits, selectedId, visibleIds])
+  }, [layout, commits, selectedId, visibleIds, searchActive, matchSet, currentMatchId])
 
   const displayEdges = useMemo(
     () =>
@@ -146,6 +171,39 @@ export default function Graph({ commits, selectedId, onSelect, visibleIds, follo
     else zoomTo(READABLE_ZOOM, { duration: PAN_MS })
   }, [playToken, flowReady, getZoom, setCenter, zoomTo])
 
+  // Search only moves the camera from typing, Enter, Prev or Next. Matches
+  // changing because of the time-lapse never pan, so it can't fight the
+  // follow camera.
+  useEffect(() => {
+    currentMatchRef.current = currentMatchId
+  })
+
+  useEffect(() => () => clearTimeout(searchTimerRef.current), [])
+
+  const panToMatch = (id) => {
+    const node = layout.nodes.find((n) => n.id === id)
+    if (!node) return
+    setCenter(...nodeCenter(node), { zoom: Math.max(getZoom(), MIN_PLAY_ZOOM), duration: PAN_MS })
+  }
+
+  const changeQuery = (value) => {
+    setQuery(value)
+    clearTimeout(searchTimerRef.current)
+    const first = findMatches(commits, value, visibleIds)[0] ?? null
+    setCurrent({ id: first, index: 0 })
+    if (first) {
+      searchTimerRef.current = setTimeout(() => panToMatch(currentMatchRef.current), SEARCH_PAN_DELAY_MS)
+    }
+  }
+
+  const stepMatch = (direction) => {
+    const next = stepIndex(matchIndex, matches.length, direction)
+    if (next === -1) return
+    clearTimeout(searchTimerRef.current)
+    setCurrent({ id: matches[next], index: next })
+    panToMatch(matches[next])
+  }
+
   return (
     <div style={{ height: '100vh', width: '100%' }}>
       <ReactFlow
@@ -163,13 +221,25 @@ export default function Graph({ commits, selectedId, onSelect, visibleIds, follo
         <Panel position="top-left">
           <Legend />
         </Panel>
+        <Panel position="top-right">
+          <FindBar
+            query={query}
+            onQueryChange={changeQuery}
+            index={matchIndex}
+            total={matches.length}
+            onNext={() => stepMatch(1)}
+            onPrev={() => stepMatch(-1)}
+          />
+        </Panel>
         <Controls />
         <MiniMap
           pannable
           zoomable
-          nodeColor={(node) =>
-            node.selected ? '#ffd700' : categoryStyle(node.data.commit.aiCategory).color
-          }
+          nodeColor={(node) => {
+            if (node.selected) return '#ffd700'
+            if (node.data.search === 'match' || node.data.search === 'current') return SEARCH_COLOR
+            return categoryStyle(node.data.commit.aiCategory).color
+          }}
           maskColor="rgb(0 0 0 / 0.15)"
         />
       </ReactFlow>

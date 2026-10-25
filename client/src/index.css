@@ -776,3 +776,116 @@ body {
     animation: none;
   }
 }
+
+/* ---- Find box (top right of the graph) ---- */
+
+.xp-find {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border: 2px solid #0831d9;
+  border-radius: 4px;
+  background: #ece9d8;
+  box-shadow: 2px 3px 8px rgb(0 0 0 / 0.45);
+  font-size: 12px;
+}
+
+.xp-find-label {
+  font-weight: bold;
+}
+
+/* Sunken XP text box. */
+.xp-find-input {
+  width: 160px;
+  height: 21px;
+  padding: 1px 4px;
+  border: 1px solid #7f9db9;
+  background: #fff;
+  font: 12px Tahoma, sans-serif;
+  outline: none;
+}
+
+.xp-find-input:focus {
+  border-color: #0b5ae6;
+  box-shadow: inset 0 0 0 1px #9cc2f7;
+}
+
+.xp-find-count {
+  min-width: 70px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.xp-find-count--none {
+  color: #c00000;
+}
+
+.xp-find-button {
+  min-width: 0;
+  padding: 2px 8px;
+}
+
+.xp-find-button:disabled {
+  color: #a0a0a0;
+  box-shadow: none;
+  cursor: default;
+}
+
+.xp-find-clear {
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.xp-find-clear:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ---- Find highlights on commit windows ---- */
+
+/* Outline and box-shadow only, so the window never changes size. */
+.xp-node {
+  transition: opacity 200ms ease-out;
+}
+
+.xp-search--match,
+.xp-search--current {
+  outline: 3px solid #ff9a00;
+  outline-offset: 4px;
+  box-shadow: 2px 3px 8px rgb(0 0 0 / 0.45), 0 0 14px 4px rgb(255 154 0 / 0.7);
+}
+
+/* Keeps xp-fade-in in the list so adding or removing the pulse
+   doesn't replay the mount animation. */
+.xp-search--current {
+  outline-width: 5px;
+  animation: xp-fade-in 350ms ease-out, xp-find-pulse 1.2s ease-in-out infinite alternate;
+}
+
+/* Selected and matching: keep the gold ring, add the orange glow. */
+.xp-window--active.xp-search--match,
+.xp-window--active.xp-search--current {
+  box-shadow: 0 0 0 3px #ffd700, 0 0 18px 6px rgb(255 154 0 / 0.75);
+}
+
+.xp-search--dim {
+  opacity: 0.3;
+}
+
+@keyframes xp-find-pulse {
+  to {
+    outline-color: #ffd27a;
+    outline-offset: 7px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xp-node {
+    transition: none;
+  }
+
+  .xp-search--current {
+    animation: none;
+  }
+}

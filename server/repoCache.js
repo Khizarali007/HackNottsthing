@@ -11,7 +11,8 @@ const CACHE_DIR = path.join(__dirname,'.repo-cache')
 const GITHUB_URL = /^https:\/\/github\.com\/([\w-]+)\/([\w.-]+?)(?:\.git)?\/?$/;
 
 
-async function getRepoPath(url)
+// refresh: false reuses a cached clone as it is instead of fetching again.
+async function getRepoPath(url, { refresh = true } = {})
 {
 
     const match = url.match(GITHUB_URL);
@@ -40,7 +41,7 @@ async function getRepoPath(url)
 
                 if (fs.existsSync(folder))
                 {
-                    await run('git',['-C',folder,'fetch','origin','+refs/heads/*:refs/heads/*','--prune'],opts);
+                    if (refresh) await run('git',['-C',folder,'fetch','origin','+refs/heads/*:refs/heads/*','--prune'],opts);
                 }
                 else{
                     await run('git',['clone','--bare',cleanURL,folder],opts)

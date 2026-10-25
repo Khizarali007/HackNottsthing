@@ -49,6 +49,87 @@ function runGit(args) {
   })
 }
 
+// Root-level files that count as the readme, best first.
+const README_ORDER = ['md', 'markdown', 'mdown', '', 'txt', 'rst', 'adoc', 'textile']
+const README_NAME = /^readme(?:\.(md|markdown|mdown|txt|rst|adoc|textile))?$/i
+// Longer readmes are cut off here.
+export const README_MAX_BYTES = 200 * 1024
+
+// Picks the readme out of `git ls-tree -z` output (regular files only).
+export function pickReadme(listing) {
+  const found = []
+  for (const entry of listing.split('\0')) {
+    const match = entry.match(/^(\d+) blob ([0-9a-f]+)\t(.+)$/)
+    if (!match || !['100644', '100755'].includes(match[1])) continue
+    const name = match[3]
+    const parts = name.match(README_NAME)
+    if (!parts) continue
+    found.push({ name, sha: match[2], rank: README_ORDER.indexOf((parts[1] || '').toLowerCase()) })
+  }
+  // Same rank: README before readme, then by name.
+  found.sort((a, b) => a.rank - b.rank || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
+  return found[0] ?? null
+}
+
+// Reads at most maxBytes of a file, then stops git.
+function readBlob(repoPath, sha, maxBytes) {
+  return new Promise((resolve, reject) => {
+    const child = spawn('git', ['-C', repoPath, 'cat-file', 'blob', sha], { windowsHide: true })
+    const chunks = []
+    let size = 0
+    let truncated = false
+    child.stdout.on('data', (chunk) => {
+      if (truncated) return
+      chunks.push(chunk)
+      size += chunk.length
+      if (size > maxBytes) {
+        truncated = true
+        child.kill()
+      }
+    })
+    child.on('error', (err) => reject(new GitError('Failed to run git', err.message, 500)))
+    child.on('close', (code) => {
+      if (code !== 0 && !truncated) reject(new GitError('Failed to read the readme', '', 500))
+      else resolve({ buffer: Buffer.concat(chunks).subarray(0, maxBytes), truncated })
+    })
+  })
+}
+
+// The readme in the repo's root at HEAD, as { name, content, truncated }.
+// name is null (and content empty) when there isn't one.
+export async function getReadme(repoPath) {
+  const none = { name: null, content: '', truncated: false }
+  if (!isDirectory(repoPath)) {
+    throw new GitError('Repository path does not exist', repoPath, 400)
+  }
+
+  let listing
+  try {
+    // --full-tree lists the repo root even when repoPath is a subfolder (the
+    // server runs from server/ by default).
+    ;({ stdout: listing } = await runGit(['-C', repoPath, '-c', 'core.quotepath=false', 'ls-tree', '--full-tree', '-z', 'HEAD']))
+  } catch (err) {
+    if (err instanceof GitError) throw err
+    const stderr = (err.stderr || '').trim()
+    if (/not a git repository/i.test(stderr)) {
+      throw new GitError('Path is not a git repository', repoPath, 400)
+    }
+    // Fresh repo with no commits yet.
+    if (/not a valid object name|unknown revision|bad revision/i.test(stderr)) return none
+    throw new GitError('Failed to read the readme', stderr || err.message, 500)
+  }
+
+  const readme = pickReadme(listing)
+  if (!readme) return none
+
+  const { buffer, truncated } = await readBlob(repoPath, readme.sha, README_MAX_BYTES)
+  // A binary file is not a readme worth showing.
+  if (buffer.includes(0)) return { name: readme.name, content: '', truncated: false }
+
+  const content = buffer.toString('utf8').replace(/^﻿/, '').replace(/\r\n?/g, '\n')
+  return { name: readme.name, content, truncated }
+}
+
 export async function getHistory(repoPath, { limit } = {}) {
   if (!isDirectory(repoPath)) {
     throw new GitError('Repository path does not exist', repoPath, 400)

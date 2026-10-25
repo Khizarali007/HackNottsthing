@@ -954,3 +954,81 @@ body {
     animation: none;
   }
 }
+
+/* ---- README icon and window ---- */
+
+/* Looks like an icon on the XP desktop: white label with a shadow. */
+.xp-desktop-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 84px;
+  padding: 4px 2px;
+  border: 1px solid transparent;
+  background: none;
+  color: #fff;
+  font: 11px Tahoma, sans-serif;
+  text-shadow: 1px 1px 2px #000, 0 0 3px #000;
+  cursor: pointer;
+}
+
+.xp-desktop-icon img {
+  display: block;
+  filter: drop-shadow(1px 2px 2px rgb(0 0 0 / 0.5));
+}
+
+.xp-desktop-icon span {
+  padding: 1px 3px;
+}
+
+.xp-desktop-icon:hover span,
+.xp-desktop-icon:focus-visible span,
+.xp-desktop-icon[aria-expanded='true'] span {
+  background: #316ac5;
+  text-shadow: none;
+}
+
+.xp-desktop-icon:focus-visible {
+  outline: 1px dotted #fff;
+  outline-offset: -1px;
+}
+
+/* Notepad-style window, centred over the graph. */
+.xp-readme-window {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 40;
+  width: min(720px, 92vw);
+  height: min(520px, 72vh);
+  transform: translate(-50%, -50%);
+  outline: none;
+}
+
+.xp-readme-menu {
+  display: flex;
+  gap: 14px;
+}
+
+.xp-readme-body {
+  flex: 1;
+  min-height: 0;
+  margin: 0 3px 3px;
+  overflow: auto;
+  border: 1px solid #7f9db9;
+  background: #fff;
+}
+
+.xp-readme-text {
+  margin: 0;
+  padding: 6px 8px;
+  font: 13px "Lucida Console", Consolas, monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #000;
+}
+
+.xp-readme-text:focus {
+  outline: none;
+}

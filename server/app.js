@@ -1,7 +1,7 @@
 // Express app with all middleware and routes. index.js starts it.
 import express from 'express'
 import cors from 'cors'
-import { getHistory, GitError } from './gitService.js'
+import { getHistory, getReadme, GitError } from './gitService.js'
 import { AiError } from './ai/gemini.js'
 import { getRepoPath } from './repoCache.js'
 const MAX_LIMIT = 5000
@@ -60,6 +60,20 @@ export function createApp({ repoPath, ai }) {
     } 
     catch (err) 
     {
+      sendError(res, err)
+    }
+  })
+
+  app.get('/api/readme', async (req, res) => {
+    try {
+      const repoURL = req.query.repo
+      let dir = repoPath
+      if (typeof repoURL === 'string' && repoURL.trim() !== '') {
+        // The history request just fetched it, so don't fetch again.
+        dir = await getRepoPath(repoURL, { refresh: false })
+      }
+      res.json(await getReadme(dir))
+    } catch (err) {
       sendError(res, err)
     }
   })

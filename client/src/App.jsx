@@ -6,6 +6,7 @@ import SummaryPanel from './components/SummaryPanel.jsx'
 import StatusDialog from './components/StatusDialog.jsx'
 import TimeLapseSlider from './components/TimeLapseSlider.jsx'
 import RepoPicker from './components/RepoPicker.jsx'
+import ReadmeLauncher from './components/ReadmeLauncher.jsx'
 import useAiConfig from './hooks/useAiConfig.js'
 import useCommitHistory from './hooks/useCommitHistory.js'
 import useStartupSound from './hooks/useStartupSound.js'
@@ -181,6 +182,10 @@ function AppContent({ history, repoUrl, onRepoChange }) {
             playToken={playToken}
             findSlot={findSlot}
           />
+          {/* Top right, under the toolbar row. */}
+          <div className="absolute right-4 top-14 z-10">
+            <ReadmeLauncher key={repoUrl ?? 'default'} repoUrl={repoUrl} />
+          </div>
           {(usingSample || dropped > 0) && (
             <div className="xp-balloon" role="status">
               {usingSample && <div>Backend offline - showing sample data.</div>}

@@ -1,12 +1,14 @@
 {
   "name": "gitstory",
   "version": "0.0.0",
+  "description": "Explore a git repository's history as an interactive graph.",
   "private": true,
   "scripts": {
     "install:all": "npm install && npm install --prefix client && npm install --prefix server",
     "dev": "concurrently -n server,client -c blue,green \"npm run dev:server\" \"npm run dev:client\"",
     "dev:client": "npm run dev --prefix client",
-    "dev:server": "npm run dev --prefix server"
+    "dev:server": "npm run dev --prefix server",
+    "test": "npm test --prefix server && npm test --prefix client"
   },
   "devDependencies": {
     "concurrently": "^10.0.6"

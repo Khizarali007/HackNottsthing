@@ -2,11 +2,13 @@
   "name": "client",
   "private": true,
   "version": "0.0.0",
+  "description": "GitStory front end: the commit graph, commit classifier and XP-style interface.",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "oxlint",
+    "test": "node --test",
     "preview": "vite preview"
   },
   "dependencies": {

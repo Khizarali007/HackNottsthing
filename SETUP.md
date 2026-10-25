@@ -3,6 +3,8 @@
 ## Requirements
 
 - Node.js 20+ and npm
+- git, installed and on your PATH. The server runs it to read the history.
+- An internet connection for the first page load, which downloads the commit classifier model (the browser keeps it afterwards), and whenever you load a repository from GitHub. With no connection the graph still works, but commits stay uncoloured (Unclassified).
 
 ## Install
 
@@ -52,6 +54,16 @@ node server/index.js --repo /path/to/some/repo
 
 The server prints the repository path and port when it starts.
 
+## Loading a GitHub repository from the app
+
+The address bar at the top of the app loads any public GitHub repository. Type `https://github.com/owner/repo` and press Go. Leave it blank to go back to the repository the server is reading (see above).
+
+- Only `https://github.com/owner/repo` addresses are accepted. The repository must be public.
+- The first time, the server makes a bare clone in `server/.repo-cache/` and fetches updates on later loads. The folder is ignored by git; delete it to clear the cache.
+- Loading needs internet access and `git` on your PATH.
+- Very large histories show the newest 500 commits, and the app says when it has cut a repository short.
+- To skip the XP boot screen, open `http://localhost:5173/?boot=off`.
+
 ## Ports
 
 | Service | URL                   |
@@ -67,7 +79,10 @@ The server allows CORS from `http://localhost:5173` and `http://127.0.0.1:5173`.
 
 ```bash
 npm test --prefix server
+npm test --prefix client
 ```
+
+Or run both from the repo root with `npm test`.
 
 ## Build
 
@@ -78,7 +93,7 @@ npm run build
 
 ## AI features
 
-The server can write a short plain-English summary of a single commit using Google Gemini. It is **off by default**, so no API credits are used unless you turn it on. Commit categories (Bugfix, Feature and so on) are separate: they run in the browser and don't need a key.
+The server can write a short plain-English summary of a single commit using Google Gemini. It is **off by default**, so no API credits are used unless you turn it on. Commit categories (Bugfix, Feature and so on) are separate: they run in the browser and don't need a key. With summaries off, the Generate summary button shows a basic summary built in the browser from the commit's own data.
 
 ### Setup
 
@@ -132,9 +147,10 @@ Returns:
 
 ### `GET /api/history`
 
-Optional query parameter:
+Optional query parameters:
 
 - `limit`: only return the newest N commits, e.g. `/api/history?limit=200`. Must be a positive whole number. Values above 5000 are treated as 5000.
+- `repo`: a public GitHub address such as `https://github.com/owner/repo`. When set, the server reads that repository instead of the default one (see [Loading a GitHub repository from the app](#loading-a-github-repository-from-the-app)).
 
 Commits from every branch are included, newest first (parents always come after their children).
 
@@ -163,6 +179,20 @@ Returns a flat JSON array of commits:
 - Merge commits report `0` added and `0` deleted lines. Binary files count as `0`.
 - A repository with no commits yet returns `[]`.
 
+### `GET /api/readme`
+
+Returns the README in the root of the repository's latest commit. The optional `repo` query parameter works as it does for `/api/history`.
+
+```json
+{ "name": "README.md", "content": "# Title\n...", "truncated": false }
+```
+
+- `name` is `null` and `content` is `""` when the repository has no README.
+- The README is found in the repository root, with or without an extension: `.md`, `.markdown`, `.mdown`, no extension, `.txt`, `.rst`, `.adoc` or `.textile`, in any capitalisation. The first of those in that order wins.
+- Files over 200 KB are cut off and `truncated` is `true`.
+- A binary file comes back with an empty `content`.
+- Errors use the format in [Errors](#errors).
+
 ### `POST /api/summary`
 
 Writes a short summary of one commit. Needs AI to be switched on (see [AI features](#ai-features)).
@@ -170,8 +200,10 @@ Writes a short summary of one commit. Needs AI to be switched on (see [AI featur
 Request body:
 
 ```json
-{ "id": "<full 40-character commit hash>" }
+{ "id": "<full 40-character commit hash>", "repo": "https://github.com/owner/repo" }
 ```
+
+`repo` is optional and works as it does for `/api/history`. Send it when the commit belongs to a repository loaded from GitHub.
 
 Response:
 
@@ -201,6 +233,7 @@ Errors are returned as JSON:
 | ------ | ----------------------------------------------------------------- |
 | 400    | The repository path doesn't exist or isn't a git repository       |
 | 400    | `limit` isn't a positive whole number                             |
+| 400    | `repo` isn't an `https://github.com/owner/repo` address, or the repository couldn't be cloned (it is private or doesn't exist) |
 | 500    | Git isn't installed, or git failed while reading the history      |
 
 `POST /api/summary` has its own statuses, listed in its section above.

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { ReactFlow, Controls, MiniMap, Panel, useReactFlow } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import CommitNode from './CommitNode.jsx'
@@ -55,7 +56,7 @@ function layoutSignature(commits) {
 // Renders the commit history as a React Flow graph laid out with dagre.
 // Needs a ReactFlowProvider above it for useReactFlow.
 // `playToken` goes up each time Play is pressed.
-export default function Graph({ commits, selectedId, onSelect, visibleIds, followId, playToken = 0 }) {
+export default function Graph({ commits, selectedId, onSelect, visibleIds, followId, playToken = 0, findSlot = null }) {
   const { setCenter, getZoom, fitView, zoomTo } = useReactFlow()
   const [flowReady, setFlowReady] = useState(false)
   // The layout the camera was last placed for, so it only happens once per dataset.
@@ -221,16 +222,6 @@ export default function Graph({ commits, selectedId, onSelect, visibleIds, follo
         <Panel position="top-left">
           <Legend />
         </Panel>
-        <Panel position="top-right" className="xp-find-panel">
-          <FindBar
-            query={query}
-            onQueryChange={changeQuery}
-            index={matchIndex}
-            total={matches.length}
-            onNext={() => stepMatch(1)}
-            onPrev={() => stepMatch(-1)}
-          />
-        </Panel>
         <Controls />
         <MiniMap
           pannable
@@ -243,6 +234,19 @@ export default function Graph({ commits, selectedId, onSelect, visibleIds, follo
           maskColor="rgb(0 0 0 / 0.15)"
         />
       </ReactFlow>
+      {/* Drawn into the toolbar next to the address bar (see App). */}
+      {findSlot &&
+        createPortal(
+          <FindBar
+            query={query}
+            onQueryChange={changeQuery}
+            index={matchIndex}
+            total={matches.length}
+            onNext={() => stepMatch(1)}
+            onPrev={() => stepMatch(-1)}
+          />,
+          findSlot,
+        )}
     </div>
   )
 }

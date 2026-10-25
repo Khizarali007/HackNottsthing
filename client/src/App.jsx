@@ -50,6 +50,8 @@ function AppContent({ history, repoUrl, onRepoChange }) {
   const [playToken, setPlayToken] = useState(0)
   const handlePlay = useCallback(() => setPlayToken((n) => n + 1), [])
 
+  const [findSlot, setFindSlot] = useState(null)
+
   // Changing repo resets everything that pointed at the old graph.
   function handleRepoSubmit(url) {
     onRepoChange(url || null) // empty box = back to the default repo
@@ -113,8 +115,10 @@ function AppContent({ history, repoUrl, onRepoChange }) {
   // Rendered in every branch below so you can always enter a new repo,
   // including while loading and after an error.
   const picker = (
-    <div className="fixed left-1/2 top-2 z-20 -translate-x-1/2">
+    <div className="xp-toolbar">
       <RepoPicker value={repoUrl ?? ''} onSubmit={handleRepoSubmit} />
+      {/* The graph draws its find box here, beside the address bar. */}
+      <div ref={setFindSlot} className="xp-toolbar-find" />
     </div>
   )
 
@@ -175,6 +179,7 @@ function AppContent({ history, repoUrl, onRepoChange }) {
             visibleIds={visibleIds}
             followId={followId}
             playToken={playToken}
+            findSlot={findSlot}
           />
           {(usingSample || dropped > 0) && (
             <div className="xp-balloon" role="status">

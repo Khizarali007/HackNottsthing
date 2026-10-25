@@ -567,7 +567,7 @@ body {
 }
 
 .xp-input {
-  width: min(420px, 60vw);
+  width: 210px;
   padding: 3px 6px;
   border: 1px solid #7f9db9;
   background: #fff;
@@ -804,20 +804,51 @@ body {
   }
 }
 
-/* ---- Find box (top right of the graph) ---- */
+/* ---- Top toolbar: address bar with the find box beside it ---- */
 
-/* Second row, under the address bar. */
-.react-flow__panel.xp-find-panel {
-  margin-top: 52px;
+.xp-toolbar {
+  position: fixed;
+  top: 8px;
+  left: 50%;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: center;
+  gap: 8px 10px;
+  width: max-content;
+  /* Leaves room for the legend on the left and the side panel on the right.
+     When it gets narrower than that the find box wraps under the address bar. */
+  max-width: calc(100vw - 660px);
+  transform: translateX(-50%);
+  /* Only the boxes take clicks, not the empty space around them. */
+  pointer-events: none;
 }
+
+.xp-toolbar > * {
+  pointer-events: auto;
+}
+
+/* Keeps its width before the graph is ready so the address bar doesn't jump. */
+.xp-toolbar-find {
+  display: flex;
+  min-width: 335px;
+}
+
+.xp-toolbar-find:empty {
+  pointer-events: none;
+}
+
+/* ---- Find box ---- */
 
 .xp-find {
   display: flex;
+  flex: 1;
   align-items: center;
   gap: 6px;
   padding: 4px 6px;
   border: 2px solid #0831d9;
-  border-radius: 4px;
+  border-radius: 6px;
   background: #ece9d8;
   box-shadow: 2px 3px 8px rgb(0 0 0 / 0.45);
   font-size: 12px;
@@ -829,7 +860,9 @@ body {
 
 /* Sunken XP text box. */
 .xp-find-input {
-  width: 160px;
+  width: 100px;
+  min-width: 0;
+  flex: 1;
   height: 21px;
   padding: 1px 4px;
   border: 1px solid #7f9db9;
@@ -844,7 +877,7 @@ body {
 }
 
 .xp-find-count {
-  min-width: 70px;
+  min-width: 60px;
   text-align: center;
   white-space: nowrap;
 }

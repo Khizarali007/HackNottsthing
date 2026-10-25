@@ -21,7 +21,8 @@ export default function RepoPicker({ value, onSubmit }) {
         type="text"
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
-        placeholder="https://github.com/owner/repo (blank = default)"
+        placeholder="https://github.com/owner/repo"
+        title="Leave blank to use the default repo"
     />
     <button type="submit" className="xp-button">Go</button>
     </form>

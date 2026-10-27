@@ -133,6 +133,3 @@ The full request and response details are in [SETUP.md](SETUP.md).
 - [Modblitz](https://github.com/Modblitz)
 - [sreyas-sreekumar](https://github.com/sreyas-sreekumar)
 
-## Credits
-
-Commit Explorer is a fan-made, non-commercial tribute to the Windows XP look. Windows XP is a trademark of Microsoft, and the wallpaper, icons and sounds that recreate its look belong to their respective owners. This project is not affiliated with or endorsed by Microsoft.
